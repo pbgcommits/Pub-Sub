@@ -1,3 +1,5 @@
+package Shared;
+
 import subscriber.Subscriber;
 
 import java.util.ArrayList;

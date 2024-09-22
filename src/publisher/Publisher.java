@@ -21,13 +21,14 @@ public class Publisher {
 //        topics.put(topicCount, new Topic(topicCount));
     }
     public void publish (int id, String message) {
-        if (topics.get(id) == null) {
-            throw new NoSuchElementException("Publisher does not have a topic with this id");
-        }
-        topics.get(id).publishMessage(message);
+//        if (topics.get(id) == null) {
+//            throw new NoSuchElementException("Publisher does not have a topic with this id");
+//        }
+//        topics.get(id).publishMessage(message);
     }
     public int show (int id) {
-        return topics.get(id).getSubscriberCount();
+        return 0;
+//        return topics.get(id).getSubscriberCount();
     }
     public void delete (int id) {
 
