@@ -73,8 +73,9 @@ public class Subscriber {
         System.out.println("From " + publisherName + ", about " + topicName + " (" + topicID + "):");
         System.out.println(message);
     }
-    /** A subscriber should receive a real-time notification message if they unsubscribe from a topic or if a topic they are subscribed to is deleted by the publisher.
-     * (This is specifically to deal with a topic being deleted by its publisher*/
+    /** A subscriber should receive a real-time notification message if they unsubscribe from a topic
+     * or if a topic they are subscribed to is deleted by the publisher.
+     * (This is specifically to deal with a topic being deleted by its publisher) */
     public void deleteTopic(int id) {
         currentTopics.remove(id);
         System.out.println("Topic " + id + " deleted by its publisher.");

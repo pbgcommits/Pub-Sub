@@ -14,7 +14,14 @@ public class Main {
             "\nunsub {topic_id}: unsubscribe from the given topic" +
             "\nd/disconnect: disconnect from the network (warning: all current subscriptions will be lost!)";
     public static void main(String[] args) {
-        int port = new PortVerifier().verifyPort(args, 1, 3, USAGE_MESSAGE);
+        int port;
+        try {
+            port = new PortVerifier().verifyPort(args, 1, 3, USAGE_MESSAGE);
+        }
+        catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+            return;
+        }
         Subscriber sub = new Subscriber(args[0], args[1], port);
         System.out.println("Welcome, " + args[0] + "." + " (ip: " + args[1] + ", port: " + port + ")");
         System.out.println("Available commands:");
@@ -36,6 +43,7 @@ public class Main {
             // close connection
             case "disconnect":
             case "d":
+            case "dc":
                 System.out.println("Logging out");
                 return false;
             case "list":
@@ -43,7 +51,7 @@ public class Main {
                 break;
             case "sub":
                 try {
-                    int id = verifyTopicId(input, 1, 2);
+                    int id = verifyTopicId(input, 1, 2, "Usage: sub {topic_id}");
                     sub.subscribeToTopic(id);
                 }
                 catch (IllegalArgumentException e) {
@@ -55,7 +63,7 @@ public class Main {
                 break;
             case "unsub":
                 try {
-                    int id = verifyTopicId(input, 1, 2);
+                    int id = verifyTopicId(input, 1, 2, "Usage: unsub {topic_id}");
                     sub.unsubscribe(id);
                 }
                 catch (IllegalArgumentException e) {
@@ -67,13 +75,12 @@ public class Main {
         }
         return true;
     }
-    private static int verifyTopicId(String input[], int index, int numArguments) {
-        String usage = "Usage: sub {topic_id}";
+    private static int verifyTopicId(String[] input, int index, int numArguments, String usage) throws IllegalArgumentException {
         if (input.length != numArguments) {
             throw new IllegalArgumentException(usage);
         }
         try {
-            return Integer.parseInt(input[1]);
+            return Integer.parseInt(input[index]);
         }
         catch (NumberFormatException e) {
             throw new IllegalArgumentException(usage);
