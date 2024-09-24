@@ -1,8 +1,6 @@
 package publisher;
 
-import Shared.GlobalCommand;
-
-public enum PublishCommand {
+public enum PublisherCommand {
     CREATE {
         @Override
         public String toString() {
@@ -62,9 +60,9 @@ public enum PublishCommand {
     public abstract String toString();
     public abstract String getUsage();
     public abstract String getInfo();
-    public static String getPublishCommandUsage() {
+    public static String getPublisherCommandUsage() {
         StringBuilder sb = new StringBuilder();
-        for (PublishCommand p : PublishCommand.values()) {
+        for (PublisherCommand p : PublisherCommand.values()) {
             sb.append(p.getUsage() + ": " + p.getInfo() + "\n");
         }
         return sb.toString();

@@ -40,6 +40,7 @@ public enum GlobalCommand {
     public abstract String toString();
     public abstract String getUsage();
     public abstract String getInfo();
+    public abstract String[] getOptions();
     public static String getGlobalCommandUsage() {
         StringBuilder sb = new StringBuilder();
         for (GlobalCommand g : GlobalCommand.values()) {

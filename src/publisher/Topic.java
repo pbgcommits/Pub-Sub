@@ -16,7 +16,6 @@ public class Topic implements RemoteTopic {
         return subscribers.keySet();
     }
     final private String name;
-    // TODO: desperately need to work out how I want to store topic ids
     public Topic(String name, int id, Publisher publisher) {
         subscriberCount = 0;
         subscribers = new ConcurrentHashMap<>();
@@ -58,7 +57,7 @@ public class Topic implements RemoteTopic {
     public void publishMessage(String message) {
         String pubName = getPublisherName();
         for (String s : subscribers.keySet()) {
-            subscribers.get(s).displayMessage(message, id, name, pubName);
+            subscribers.get(s).writeMessage(message, id, name, pubName);
         }
     }
 }
