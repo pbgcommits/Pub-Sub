@@ -1,11 +1,14 @@
 package directory;
 
+import Shared.ISubscriber;
 import Shared.PortVerifier;
 
 import java.rmi.AlreadyBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
+import java.util.*;
 
 public class Main {
     private static Directory directory;
@@ -37,10 +40,12 @@ public class Main {
             return;
         }
         catch (AlreadyBoundException e) {
-            System.out.println("Something has gone VERY wrong here");
+            System.out.println("Object " + e.getMessage() + "is already bound!");
             return;
         }
+        // TODO: seems like it doesn't automatically terminate when the RMI registry shuts? random...
         Directory.init("localhost", port, registry);
+        System.out.println("Directory is now running");
 //        directory = Directory.getInstance();
 //        while (true) {
 //            // TODO: check for incoming brokers, publishers, subscribers, and allocate them accordingly

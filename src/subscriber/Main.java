@@ -6,6 +6,7 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.util.List;
 import java.util.Scanner;
 
 public class Main {
@@ -15,7 +16,7 @@ public class Main {
     public static void main(String[] args) {
         int port;
         try {
-            port = new PortVerifier().verifyPort(args, 1, 3, USAGE_MESSAGE);
+            port = new PortVerifier().verifyPort(args, 2, 3, USAGE_MESSAGE);
         }
         catch (IllegalArgumentException e) {
             System.out.println(e.getMessage());
@@ -46,10 +47,16 @@ public class Main {
         }
     }
     private static boolean handleInput(ISubscriber subscriber, String[] input) {
-        if (subscriber.hasMessage()) {
-            System.out.println(subscriber.getMessage());
-            // TODO: this might not actually update D: - so tbh probably need to use some sort of lock
-            while (subscriber.hasMessage()) {/* wait so it doesn't print a million times*/}
+        try {
+            if (subscriber.hasMessage()) {
+                System.out.println(subscriber.getMessage());
+                // TODO: this might not actually update D: - so tbh probably need to use some sort of lock
+                while (subscriber.hasMessage()) {/* wait so it doesn't print a million times*/}
+            }
+        }
+        catch (RemoteException e) {
+            // TODO - this might actually deal with one of the disconnection issues?!
+            System.out.println(e.getMessage());
         }
         String command = input[0];
         for (String h : GlobalCommand.HELP.getOptions()) {
@@ -64,32 +71,35 @@ public class Main {
                 return false;
             }
         }
-        if (command.equals(SubscriberCommand.LIST.toString())) {
-            subscriber.listAllAvailableTopics();
-        }
-        else if (command.equals(SubscriberCommand.SUB.toString())) {
-            try {
-                int id = verifyTopicId(input, 1, 2, "Usage: sub {topic_id}");
-                subscriber.subscribeToTopic(id);
+        try {
+            if (command.equals(SubscriberCommand.LIST.toString())) {
+                System.out.println(subscriber.listAllAvailableTopics());
+            } else if (command.equals(SubscriberCommand.SUB.toString())) {
+                try {
+                    int id = verifyTopicId(input, 1, 2, "Usage: sub {topic_id}");
+                    subscriber.subscribeToTopic(id);
+                    // todo - would be nice to display the topic name as well here if possible!
+                    System.out.println("Subscribed to " + id);
+                } catch (IllegalArgumentException e) {
+                    System.out.println(e.getMessage());
+                }
+            } else if (command.equals(SubscriberCommand.CURRENT.toString())) {
+                System.out.println(subscriber.showCurrentSubscriptions());
+            } else if (command.equals(SubscriberCommand.UNSUB.toString())) {
+                try {
+                    int id = verifyTopicId(input, 1, 2, "Usage: unsub {topic_id}");
+                    subscriber.unsubscribe(id);
+                    // TODO - would be nice to show the topic name here!
+                    System.out.println("Unsubscribed from " + id);
+                } catch (IllegalArgumentException e) {
+                    System.out.println(e.getMessage());
+                }
+            } else {
+                System.out.println("Unrecognised command. Press \"h\" for a list of commands" + ".");
             }
-            catch (IllegalArgumentException e) {
-                System.out.println(e.getMessage());
-            }
         }
-        else if (command.equals(SubscriberCommand.CURRENT.toString())) {
-            subscriber.showCurrentSubscriptions();
-        }
-        else if (command.equals(SubscriberCommand.UNSUB.toString())) {
-            try {
-                int id = verifyTopicId(input, 1, 2, "Usage: unsub {topic_id}");
-                subscriber.unsubscribe(id);
-            }
-            catch (IllegalArgumentException e) {
-                System.out.println(e.getMessage());
-            }
-        }
-        else {
-            System.out.println("Unrecognised command. Press \"h\" for a list of commands" + ".");
+        catch (RemoteException e) {
+            System.out.println(e.getMessage());
         }
         return true;
 //        switch (input[0]) {

@@ -1,7 +1,6 @@
 package directory;
 
 import Shared.IPublisherFactory;
-import publisher.Publisher;
 
 import java.rmi.AlreadyBoundException;
 import java.rmi.registry.Registry;
@@ -15,13 +14,7 @@ public class PublisherFactory extends UnicastRemoteObject implements IPublisherF
     }
 
     @Override
-    public boolean createPublisher(String username) throws RemoteException {
-        try {
-            registry.bind(username, new Publisher(username));
-        }
-        catch (AlreadyBoundException e) {
-            return false;
-        }
-        return true;
+    public void createPublisher(String username) throws AlreadyBoundException, RemoteException {
+        registry.bind(username, new Publisher(username));
     }
 }

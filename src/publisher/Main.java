@@ -6,6 +6,7 @@ import Shared.IPublisherFactory;
 import Shared.PortVerifier;
 
 import javax.naming.LimitExceededException;
+import java.rmi.AlreadyBoundException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -20,7 +21,7 @@ public class Main {
     public static void main(String[] args) {
         int port;
         try {
-            port = new PortVerifier().verifyPort(args, 1, 3, USAGE_MESSAGE);
+            port = new PortVerifier().verifyPort(args, 2, 3, USAGE_MESSAGE);
         }
         catch (IllegalArgumentException e) {
             System.out.println(e.getMessage());
@@ -35,7 +36,8 @@ public class Main {
             pf.createPublisher(args[0]);
             publisher = (IPublisher) registry.lookup(args[0]);
         }
-        catch (RemoteException | NotBoundException e) {
+        catch (AlreadyBoundException | RemoteException | NotBoundException e) {
+            System.out.println(e);
             System.out.println(e.getMessage());
             return;
         }
@@ -70,7 +72,7 @@ public class Main {
                 int id = publisher.createNewTopic(input[1]);
                 System.out.println("Created new topic: " + input[1] + " with id " + id);
             }
-            catch (IllegalArgumentException | LimitExceededException e) {
+            catch (RemoteException | IllegalArgumentException | LimitExceededException e) {
                 System.out.println(e.getMessage());
             }
         }
@@ -80,7 +82,7 @@ public class Main {
                 publisher.publish(id, input[2]);
                 System.out.println("Successfully published message");
             }
-            catch (IllegalArgumentException | NoSuchElementException e) {
+            catch (RemoteException | IllegalArgumentException | NoSuchElementException e) {
                 System.out.println(e.getMessage());
             }
         }
@@ -89,7 +91,7 @@ public class Main {
                 int id = verifyTopicId(input, 1, 2, PublisherCommand.SHOW.getUsage());
                 System.out.println(publisher.show(id));
             }
-            catch (IllegalArgumentException | NoSuchElementException e) {
+            catch (RemoteException | IllegalArgumentException | NoSuchElementException e) {
                 System.out.println(e.getMessage());
             }
         }
@@ -99,7 +101,7 @@ public class Main {
                 publisher.delete(id);
                 System.out.println("Successfully deleted topic with id " + id);
             }
-            catch (IllegalArgumentException | NoSuchElementException e) {
+            catch (RemoteException | IllegalArgumentException | NoSuchElementException e) {
                 System.out.println(e.getMessage());
             }
         }

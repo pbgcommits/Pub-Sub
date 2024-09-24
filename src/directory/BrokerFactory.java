@@ -1,7 +1,6 @@
 package directory;
 
 import broker.Broker;
-import publisher.Publisher;
 
 import java.rmi.RemoteException;
 import java.rmi.registry.Registry;

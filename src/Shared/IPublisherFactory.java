@@ -1,8 +1,10 @@
 package Shared;
 
+import java.rmi.AlreadyBoundException;
+import java.rmi.Remote;
 import java.rmi.RemoteException;
 
-public interface IPublisherFactory {
+public interface IPublisherFactory extends Remote {
 
-    boolean createPublisher(String username) throws RemoteException;
+    void createPublisher(String username) throws AlreadyBoundException, RemoteException;
 }

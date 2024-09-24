@@ -1,7 +1,6 @@
 package directory;
 
 import Shared.ISubscriberFactory;
-import subscriber.Subscriber;
 
 import java.rmi.AlreadyBoundException;
 import java.rmi.RemoteException;

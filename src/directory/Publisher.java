@@ -1,6 +1,7 @@
-package publisher;
+package directory;
 
 import Shared.IPublisher;
+import publisher.Topic;
 
 import javax.naming.LimitExceededException;
 import java.rmi.RemoteException;

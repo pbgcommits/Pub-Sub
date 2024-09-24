@@ -8,7 +8,7 @@ public class PortVerifier {
             throw new IllegalArgumentException(usageMessage);
         }
         try {
-            int port = Integer.parseInt(args[2]);
+            int port = Integer.parseInt(args[index]);
             if (0 > port || port > 65535) {
                 throw new IllegalArgumentException(PORT_ERROR_MESSAGE);
             }

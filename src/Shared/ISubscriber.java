@@ -1,18 +1,20 @@
 package Shared;
 
+import java.rmi.Remote;
+import java.rmi.RemoteException;
 import java.util.List;
 
-public interface ISubscriber {
+public interface ISubscriber extends Remote {
 
-    List<String> listAllAvailableTopics();
+    String listAllAvailableTopics() throws RemoteException;
 
-    void subscribeToTopic(int id);
+    void subscribeToTopic(int id) throws RemoteException;
 
-    void showCurrentSubscriptions();
+    String showCurrentSubscriptions() throws RemoteException;
 
-    void unsubscribe(int id);
+    void unsubscribe(int id) throws RemoteException;
 
-    boolean hasMessage();
+    boolean hasMessage() throws RemoteException;
 
-    String getMessage();
+    String getMessage() throws RemoteException;
 }
