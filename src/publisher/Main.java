@@ -1,9 +1,6 @@
 package publisher;
 
-import Shared.GlobalCommand;
-import Shared.IPublisher;
-import Shared.IPublisherFactory;
-import Shared.PortVerifier;
+import Shared.*;
 
 import javax.naming.LimitExceededException;
 import java.rmi.AlreadyBoundException;
@@ -15,33 +12,36 @@ import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 public class Main {
-    final static String USAGE_MESSAGE = "Usage: java -jar publisher.jar username broker_ip broker_port";
+    final static String USAGE_MESSAGE = "java -jar publisher.jar username broker_ip broker_port";
     final static String COMMAND_LIST = "Available commands:\n" +
             PublisherCommand.getPublisherCommandUsage() + GlobalCommand.getGlobalCommandUsage();
+    final static InputVerifier v = new InputVerifier();
     public static void main(String[] args) {
         int port;
         try {
-            port = new PortVerifier().verifyPort(args, 2, 3, USAGE_MESSAGE);
+            port = v.verifyPort(args, 2, 3, USAGE_MESSAGE);
         }
         catch (IllegalArgumentException e) {
             System.out.println(e.getMessage());
             return;
         }
-//        Publisher publisher = new Publisher(args[0], args[1], port);
-//        IPublisher publisher = new Publisher(args[0]);
         IPublisher publisher;
+        String username = args[0];
+        String ip = args[1];
         try {
-            Registry registry = LocateRegistry.getRegistry(args[1], port);
-            IPublisherFactory pf = (IPublisherFactory) registry.lookup("PublisherFactory");
-            pf.createPublisher(args[0]);
-            publisher = (IPublisher) registry.lookup(args[0]);
+            Registry registry = LocateRegistry.getRegistry(ip, port);
+            IDirectory directory = (IDirectory) registry.lookup("Directory");
+            directory.addPublisher(username);
+//            IPublisherFactory pf = (IPublisherFactory) registry.lookup("PublisherFactory");
+//            pf.createPublisher(args[0]);
+            publisher = (IPublisher) registry.lookup(username);
         }
         catch (AlreadyBoundException | RemoteException | NotBoundException e) {
             System.out.println(e);
             System.out.println(e.getMessage());
             return;
         }
-        System.out.println("Welcome, " + args[0] + "." + " (ip: " + args[1] + ", port: " + port + ")");
+        System.out.println("Welcome, " + username + "." + " (ip: " + ip + ", port: " + port + ")");
         System.out.println(COMMAND_LIST);
         Scanner scanner = new Scanner(System.in);
         while (true) {
@@ -78,7 +78,7 @@ public class Main {
         }
         else if (command.equals(PublisherCommand.PUBLISH.toString())) {
             try {
-                int id = verifyTopicId(input, 1, 3, PublisherCommand.PUBLISH.getUsage());
+                int id = v.verifyTopicId(input, 1, 3, PublisherCommand.PUBLISH.getUsage());
                 publisher.publish(id, input[2]);
                 System.out.println("Successfully published message");
             }
@@ -88,7 +88,7 @@ public class Main {
         }
         else if (command.equals(PublisherCommand.SHOW.toString())) {
             try {
-                int id = verifyTopicId(input, 1, 2, PublisherCommand.SHOW.getUsage());
+                int id = v.verifyTopicId(input, 1, 2, PublisherCommand.SHOW.getUsage());
                 System.out.println(publisher.show(id));
             }
             catch (RemoteException | IllegalArgumentException | NoSuchElementException e) {
@@ -97,7 +97,7 @@ public class Main {
         }
         else if (command.equals(PublisherCommand.DELETE.toString())) {
             try {
-                int id = verifyTopicId(input, 1, 2, PublisherCommand.DELETE.getUsage());
+                int id = v.verifyTopicId(input, 1, 2, PublisherCommand.DELETE.getUsage());
                 publisher.delete(id);
                 System.out.println("Successfully deleted topic with id " + id);
             }
@@ -166,17 +166,5 @@ public class Main {
 //                System.out.println("Unrecognised command. Press \"h\" for a list of commands" + ".");
 //        }
 //        return true;
-    }
-    private static int verifyTopicId(String[] input, int index, int numArguments, String usage) throws IllegalArgumentException {
-        String prefixedUsage = "Usage: " + usage;
-        if (input.length != numArguments) {
-            throw new IllegalArgumentException(prefixedUsage);
-        }
-        try {
-            return Integer.parseInt(input[index]);
-        }
-        catch (NumberFormatException e) {
-            throw new IllegalArgumentException(prefixedUsage);
-        }
     }
 }

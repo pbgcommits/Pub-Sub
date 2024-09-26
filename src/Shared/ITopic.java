@@ -1,6 +1,6 @@
 package Shared;
 
-public interface RemoteTopic {
+public interface ITopic {
     void removeSubscriber(String username);
     void addSubscriber(String username);
     String getPublisherName();

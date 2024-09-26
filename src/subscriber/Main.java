@@ -2,40 +2,43 @@ package subscriber;
 
 import Shared.*;
 
+import java.rmi.AlreadyBoundException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.util.List;
 import java.util.Scanner;
 
 public class Main {
-    final static String USAGE_MESSAGE = "Usage: java -jar subscriber.jar username broker_ip broker_port";
+    final static String USAGE_MESSAGE = "java -jar subscriber.jar username broker_ip broker_port";
     final static String COMMAND_LIST = "Commands:\n" +
             SubscriberCommand.getSubscriberCommandUsage() + GlobalCommand.getGlobalCommandUsage();
+    final static InputVerifier v = new InputVerifier();
     public static void main(String[] args) {
         int port;
         try {
-            port = new PortVerifier().verifyPort(args, 2, 3, USAGE_MESSAGE);
+            port = v.verifyPort(args, 2, 3, USAGE_MESSAGE);
         }
         catch (IllegalArgumentException e) {
             System.out.println(e.getMessage());
             return;
         }
-//        Subscriber sub = new Subscriber(args[0], args[1], port);
-//        ISubscriber sub = new Subscriber(args[0]);
         ISubscriber subscriber;
+        String username = args[0];
+        String ip = args[1];
         try {
-            Registry registry = LocateRegistry.getRegistry(args[1], port);
-            ISubscriberFactory sf = (ISubscriberFactory) registry.lookup("SubscriberFactory");
-            sf.createSubscriber(args[0]);
-            subscriber = (ISubscriber) registry.lookup(args[0]);
+            Registry registry = LocateRegistry.getRegistry(ip, port);
+            IDirectory d = (IDirectory) registry.lookup("Directory");
+            d.addSubscriber(username);
+//            ISubscriberFactory sf = (ISubscriberFactory) registry.lookup("SubscriberFactory");
+//            sf.createSubscriber(args[0]);
+            subscriber = (ISubscriber) registry.lookup(username);
         }
-        catch (RemoteException | NotBoundException e) {
+        catch (AlreadyBoundException | RemoteException | NotBoundException e) {
             System.out.println(e.getMessage());
             return;
         }
-        System.out.println("Welcome, " + args[0] + "." + " (ip: " + args[1] + ", port: " + port + ")");
+        System.out.println("Welcome, " + username + "." + " (ip: " + ip + ", port: " + port + ")");
         System.out.println("Available commands:");
         System.out.println(COMMAND_LIST);
         Scanner scanner = new Scanner(System.in);
@@ -76,7 +79,7 @@ public class Main {
                 System.out.println(subscriber.listAllAvailableTopics());
             } else if (command.equals(SubscriberCommand.SUB.toString())) {
                 try {
-                    int id = verifyTopicId(input, 1, 2, "Usage: sub {topic_id}");
+                    int id = v.verifyTopicId(input, 1, 2, "Usage: sub {topic_id}");
                     subscriber.subscribeToTopic(id);
                     // todo - would be nice to display the topic name as well here if possible!
                     System.out.println("Subscribed to " + id);
@@ -87,7 +90,7 @@ public class Main {
                 System.out.println(subscriber.showCurrentSubscriptions());
             } else if (command.equals(SubscriberCommand.UNSUB.toString())) {
                 try {
-                    int id = verifyTopicId(input, 1, 2, "Usage: unsub {topic_id}");
+                    int id = v.verifyTopicId(input, 1, 2, "Usage: unsub {topic_id}");
                     subscriber.unsubscribe(id);
                     // TODO - would be nice to show the topic name here!
                     System.out.println("Unsubscribed from " + id);
@@ -141,16 +144,5 @@ public class Main {
 //                System.out.println("Unrecognised command. Press \"h\" for a list of commands" + ".");
 //        }
 //        return true;
-    }
-    private static int verifyTopicId(String[] input, int index, int numArguments, String usage) throws IllegalArgumentException {
-        if (input.length != numArguments) {
-            throw new IllegalArgumentException(usage);
-        }
-        try {
-            return Integer.parseInt(input[index]);
-        }
-        catch (NumberFormatException e) {
-            throw new IllegalArgumentException(usage);
-        }
     }
 }

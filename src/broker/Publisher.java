@@ -1,7 +1,6 @@
-package directory;
+package broker;
 
 import Shared.IPublisher;
-import publisher.Topic;
 
 import javax.naming.LimitExceededException;
 import java.rmi.RemoteException;
@@ -18,14 +17,21 @@ public class Publisher extends UnicastRemoteObject implements IPublisher {
     private int id;
     private static int publisherCount = 0;
     final private Map<Integer, Topic> topics;
+
+    public Map<Integer, Topic> getTopics() {
+        return topics;
+    }
+
     final private String name;
+    final private Broker broker;
 //    final private String ip;
 //    final private int port;
     public String getName() {
         return name;
     }
 //    public Publisher(String name, String ip, int port) {
-    public Publisher(String name) throws RemoteException {
+    public Publisher(String name, Broker broker) throws RemoteException {
+        this.broker = broker;
         topicCount = 0;
         publisherCount++;
         id = publisherCount * MAX_TOPIC_COUNT;
@@ -86,6 +92,11 @@ public class Publisher extends UnicastRemoteObject implements IPublisher {
         }
         topics.remove(id);
     }
+
+    public Broker getBroker() {
+        return broker;
+    }
+
     /** Checks that the given topicID exists and is registered with this publisher. */
     private void verifyTopic(int id) throws NoSuchElementException {
         if (topics.get(id) == null) {

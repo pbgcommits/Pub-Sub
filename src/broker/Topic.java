@@ -1,24 +1,23 @@
-package publisher;
+package broker;
 
-import Shared.RemoteTopic;
-import directory.Main;
-import directory.Publisher;
-import directory.Subscriber;
+import Shared.ITopic;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class Topic implements RemoteTopic {
+public class Topic implements ITopic {
     final private Publisher publisher;
-    final private Map<String, Subscriber> subscribers;
-    public Set<String> getSubscriberUsernames() {
-        return subscribers.keySet();
+    final private List<String> subscribers;
+    public List<String> getSubscriberUsernames() {
+        return subscribers;
     }
     final private String name;
     public Topic(String name, int id, Publisher publisher) {
         subscriberCount = 0;
-        subscribers = new ConcurrentHashMap<>();
+        subscribers = new ArrayList<>();
         this.id = id;
         this.name = name;
         this.publisher = publisher;
@@ -28,14 +27,14 @@ public class Topic implements RemoteTopic {
     @Override
     public synchronized void removeSubscriber(String username) {
         subscriberCount--;
-        subscribers.get(username).deleteTopic(id);
+        publisher.getBroker().removeTopicForSubscriber(id, username);
+//        subscribers.get(username).deleteTopic(id);
         subscribers.remove(username);
     }
     @Override
     public synchronized void addSubscriber(String username) {
         subscriberCount++;
-        // TODO: will need to go to the RMI registry and find the subscriber
-//        subscribers.put(username, )
+        subscribers.add(username);
     }
     @Override
     public String getPublisherName() {
@@ -55,9 +54,6 @@ public class Topic implements RemoteTopic {
     }
     @Override
     public void publishMessage(String message) {
-        String pubName = getPublisherName();
-        for (String s : subscribers.keySet()) {
-            subscribers.get(s).writeMessage(message, id, name, pubName);
-        }
+        publisher.getBroker().sendMessageToSubs(id, message, name, getPublisherName(), subscribers);
     }
 }

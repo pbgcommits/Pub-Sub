@@ -1,5 +1,6 @@
 package broker;
 
+@Deprecated
 public class PublisherAlias {
     private String ip;
     private int port;

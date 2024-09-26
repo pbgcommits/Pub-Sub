@@ -1,14 +1,11 @@
-package directory;
+package broker;
 
 import Shared.ISubscriber;
 import subscriber.SubscriberCommand;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 2.3 Subscriber
@@ -21,10 +18,12 @@ public class Subscriber extends UnicastRemoteObject implements ISubscriber {
     private Map<Integer, String> currentTopics; /** Subscribers may subscribe to multiple topics (from the same or different publishers). */
     private String directoryIP; /** A subscriber can connect to only one broker at a time, specified via the command line at runtime. */
     private int directoryPort;
+    private final Broker broker;
     private String username; /** You may assume that subscriber names will be unique throughout the system.*/
     //    public Subscriber(String username, String directoryIP, int directoryPort) {
-    public Subscriber(String username) throws RemoteException {
+    public Subscriber(Broker broker, String username) throws RemoteException {
         this.username = username;
+        this.broker = broker;
         //        this.directoryIP = directoryIP;
         //        this.directoryPort = directoryPort;
         currentTopics = new HashMap<>();
@@ -50,13 +49,14 @@ public class Subscriber extends UnicastRemoteObject implements ISubscriber {
      * Subscribes to a topic using the topic’s unique ID. The subscriber will receive all future messages published on this topic.
      * */
     @Override
-    public void subscribeToTopic(int id) throws IllegalArgumentException {
-        if (currentTopics.get(id) != null) {
-//            System.out.println("Already subscribed to this topic!");
-            throw new IllegalArgumentException("Already subscribed to this topic!");
-//            return "Already subscribed to this topic!";
-        }
+    public void subscribeToTopic(int id) throws NoSuchElementException {
+//        if (currentTopics.get(id) != null) {
+////            System.out.println("Already subscribed to this topic!");
+//            throw new IllegalArgumentException("Already subscribed to this topic!");
+////            return "Already subscribed to this topic!";
+//        }
         currentTopics.put(id, "Topic " + id);
+        broker.addSubscriberToTopic(id, username);
 //        System.out.println("Subscribed to " + currentTopics.get(id));
 //        return "Subscribed to " + currentTopics.get(id);
     }

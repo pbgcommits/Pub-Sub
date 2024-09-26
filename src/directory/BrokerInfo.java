@@ -1,5 +1,6 @@
 package directory;
 
+@Deprecated
 public class BrokerInfo {
     public static final int MAX_PUBLISHERS = 5;
     public static final int MAX_SUBSCRIBERS = 10;
