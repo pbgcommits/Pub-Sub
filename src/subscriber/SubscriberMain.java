@@ -2,22 +2,30 @@ package subscriber;
 
 import Shared.*;
 
-import java.rmi.AlreadyBoundException;
+import javax.net.SocketFactory;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
-public class Main {
-    final static String USAGE_MESSAGE = "java -jar subscriber.jar username broker_ip broker_port";
+public class SubscriberMain {
+    final static int NUM_ARGS = 5;
+    final static String USAGE_MESSAGE = "java -jar subscriber.jar " +
+            "username registry_ip registry_port directory_ip directory_port ";
     final static String COMMAND_LIST = "Commands:\n" +
             SubscriberCommand.getSubscriberCommandUsage() + GlobalCommand.getGlobalCommandUsage();
     final static InputVerifier v = new InputVerifier();
     public static void main(String[] args) {
-        int port;
+        int directoryPort, registryPort;
+        // Verify command line args
         try {
-            port = v.verifyPort(args, 2, 3, USAGE_MESSAGE);
+            registryPort = v.verifyPort(args, 2, NUM_ARGS, USAGE_MESSAGE);
+//            directoryPort = v.verifyPort(args, 4, NUM_ARGS, USAGE_MESSAGE);
         }
         catch (IllegalArgumentException e) {
             System.out.println(e.getMessage());
@@ -25,22 +33,55 @@ public class Main {
         }
         ISubscriber subscriber;
         String username = args[0];
-        String ip = args[1];
+        String registryIP = args[1];
+//        String directoryIP = args[3];
+        Socket s;
         try {
-            Registry registry = LocateRegistry.getRegistry(ip, port);
-            IDirectory d = (IDirectory) registry.lookup("Directory");
-            d.addSubscriber(username);
+            Registry registry = LocateRegistry.getRegistry(registryIP, registryPort);
+            IDirectory d = (IDirectory) registry.lookup(Messenger.DIRECTORY_RMI_NAME);
+            IBroker broker = d.getMostAvailableBroker();
+            System.out.println(broker.getId());
+            // Send a message to the broker telling it to create a new "Subscriber" object and export it to RMI
+            try {
+                SocketFactory sf = SocketFactory.getDefault();
+                s = sf.createSocket(broker.getIp(), broker.getPort());
+                DataOutputStream output = new DataOutputStream(s.getOutputStream());
+                output.writeUTF(new Messenger().newSubscriberMessage(username));
+            }
+            catch (IOException e) {
+                System.out.println("Couldn't connect to the broker.");
+                System.out.println(e.getMessage());
+                return;
+            }
+//            broker.addSubscriber(s, username);
+//            d.addSubscriber(username);
 //            ISubscriberFactory sf = (ISubscriberFactory) registry.lookup("SubscriberFactory");
 //            sf.createSubscriber(args[0]);
+            // TODO: make this more robust (rather than just waiting an arbitrary amount of time)
+            // there is some delay in the new subscriber object actually being bound
+            Thread.sleep(1000);
             subscriber = (ISubscriber) registry.lookup(username);
         }
-        catch (AlreadyBoundException | RemoteException | NotBoundException e) {
-            System.out.println(e.getMessage());
+        catch (NotBoundException e) {
+            System.out.println("There are currently no brokers connected to the network. Please try again later.");
             return;
         }
-        System.out.println("Welcome, " + username + "." + " (ip: " + ip + ", port: " + port + ")");
+        catch (RemoteException e) {
+            System.out.println("Issue connecting to either broker or directory or registry, please try again later.");
+            return;
+        }
+        catch (InterruptedException e) {
+            System.out.println("Very sad issue :(");
+            return;
+        }
+
+        // Maintains socket connection with broker
+        new SubServerConnection(s).start();
+
+        System.out.println("Welcome, " + username);
         System.out.println("Available commands:");
         System.out.println(COMMAND_LIST);
+        // Get input from user
         Scanner scanner = new Scanner(System.in);
         while (true) {
             String[] input = scanner.nextLine().split(" ");
@@ -76,19 +117,24 @@ public class Main {
         }
         try {
             if (command.equals(SubscriberCommand.LIST.toString())) {
-                System.out.println(subscriber.listAllAvailableTopics());
-            } else if (command.equals(SubscriberCommand.SUB.toString())) {
+                String allTopics = subscriber.listAllAvailableTopics();
+                if (allTopics.equals("")) System.out.println("No topics currently available.");
+                else System.out.println(allTopics);
+            }
+            else if (command.equals(SubscriberCommand.SUB.toString())) {
                 try {
                     int id = v.verifyTopicId(input, 1, 2, "Usage: sub {topic_id}");
                     subscriber.subscribeToTopic(id);
                     // todo - would be nice to display the topic name as well here if possible!
                     System.out.println("Subscribed to " + id);
-                } catch (IllegalArgumentException e) {
+                } catch (NoSuchElementException e) {
                     System.out.println(e.getMessage());
                 }
-            } else if (command.equals(SubscriberCommand.CURRENT.toString())) {
+            }
+            else if (command.equals(SubscriberCommand.CURRENT.toString())) {
                 System.out.println(subscriber.showCurrentSubscriptions());
-            } else if (command.equals(SubscriberCommand.UNSUB.toString())) {
+            }
+            else if (command.equals(SubscriberCommand.UNSUB.toString())) {
                 try {
                     int id = v.verifyTopicId(input, 1, 2, "Usage: unsub {topic_id}");
                     subscriber.unsubscribe(id);
@@ -97,7 +143,8 @@ public class Main {
                 } catch (IllegalArgumentException e) {
                     System.out.println(e.getMessage());
                 }
-            } else {
+            }
+            else {
                 System.out.println("Unrecognised command. Press \"h\" for a list of commands" + ".");
             }
         }

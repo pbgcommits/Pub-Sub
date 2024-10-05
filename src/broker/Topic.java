@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class Topic implements ITopic {
+public class Topic implements ITopic, SubscriberTopic {
     final private Publisher publisher;
     final private List<String> subscribers;
     public List<String> getSubscriberUsernames() {
@@ -56,4 +56,9 @@ public class Topic implements ITopic {
     public void publishMessage(String message) {
         publisher.getBroker().sendMessageToSubs(id, message, name, getPublisherName(), subscribers);
     }
+    @Override
+    public String toString() {
+        return "Topic id " + id + ": " + name + " (publisher: " + getPublisherName() + ")";
+    }
+
 }

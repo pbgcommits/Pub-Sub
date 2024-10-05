@@ -8,4 +8,5 @@ public interface ITopic {
     int getId();
     int getSubscriberCount();
     void publishMessage(String message);
+    String toString();
 }

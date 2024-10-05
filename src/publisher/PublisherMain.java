@@ -3,7 +3,10 @@ package publisher;
 import Shared.*;
 
 import javax.naming.LimitExceededException;
-import java.rmi.AlreadyBoundException;
+import javax.net.SocketFactory;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -11,15 +14,19 @@ import java.rmi.registry.Registry;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
-public class Main {
-    final static String USAGE_MESSAGE = "java -jar publisher.jar username broker_ip broker_port";
+public class PublisherMain {
+    final static int NUM_ARGS = 5;
+    final static String USAGE_MESSAGE = "java -jar publisher.jar " +
+            "username registry_ip registry_port directory_ip directory_port";
     final static String COMMAND_LIST = "Available commands:\n" +
             PublisherCommand.getPublisherCommandUsage() + GlobalCommand.getGlobalCommandUsage();
     final static InputVerifier v = new InputVerifier();
     public static void main(String[] args) {
-        int port;
+        int registryPort, directoryPort;
+        // Verify command line args
         try {
-            port = v.verifyPort(args, 2, 3, USAGE_MESSAGE);
+            registryPort = v.verifyPort(args, 2, NUM_ARGS, USAGE_MESSAGE);
+//            directoryPort = v.verifyPort(args, 4, NUM_ARGS, USAGE_MESSAGE);
         }
         catch (IllegalArgumentException e) {
             System.out.println(e.getMessage());
@@ -27,23 +34,45 @@ public class Main {
         }
         IPublisher publisher;
         String username = args[0];
-        String ip = args[1];
+        String registryIP = args[1];
+//        String directoryIP = args[3];
+        Socket s;
         try {
-            Registry registry = LocateRegistry.getRegistry(ip, port);
+            Registry registry = LocateRegistry.getRegistry(registryIP, registryPort);
             IDirectory directory = (IDirectory) registry.lookup("Directory");
-            directory.addPublisher(username);
+            IBroker broker = directory.getMostAvailableBroker();
+            System.out.println(broker.getId());
+            try {
+                SocketFactory sf = SocketFactory.getDefault();
+                s = sf.createSocket(broker.getIp(), broker.getPort());
+                DataOutputStream output = new DataOutputStream(s.getOutputStream());
+                output.writeUTF(new Messenger().newPublisherMessage(username));
+                output.flush();
+            }
+            catch (IOException e) {
+                System.out.println("Couldn't connect to the broker!");
+                System.out.println(e.getMessage());
+                return;
+            }
+//            directory.addPublisher(username);
 //            IPublisherFactory pf = (IPublisherFactory) registry.lookup("PublisherFactory");
 //            pf.createPublisher(args[0]);
+            Thread.sleep(1000);
             publisher = (IPublisher) registry.lookup(username);
         }
-        catch (AlreadyBoundException | RemoteException | NotBoundException e) {
-            System.out.println(e);
+        catch (RemoteException | NoSuchElementException | NotBoundException e) {
+//            System.out.println(e);
             System.out.println(e.getMessage());
             return;
         }
-        System.out.println("Welcome, " + username + "." + " (ip: " + ip + ", port: " + port + ")");
+        catch (InterruptedException e) {
+            System.out.println("Oh deary dar intterupted");
+            return;
+        }
+        System.out.println("Welcome, " + username);
         System.out.println(COMMAND_LIST);
         Scanner scanner = new Scanner(System.in);
+        new PubServerConnection(s).start();
         while (true) {
             String[] input = scanner.nextLine().split(" ");
             if (!handleInput(publisher, input)) {
@@ -78,12 +107,14 @@ public class Main {
         }
         else if (command.equals(PublisherCommand.PUBLISH.toString())) {
             try {
+                // TODO : read in space separated message D:
                 int id = v.verifyTopicId(input, 1, 3, PublisherCommand.PUBLISH.getUsage());
                 publisher.publish(id, input[2]);
                 System.out.println("Successfully published message");
             }
             catch (RemoteException | IllegalArgumentException | NoSuchElementException e) {
                 System.out.println(e.getMessage());
+                e.printStackTrace();
             }
         }
         else if (command.equals(PublisherCommand.SHOW.toString())) {

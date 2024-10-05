@@ -53,7 +53,9 @@ public class Publisher extends UnicastRemoteObject implements IPublisher {
         // TODO okay I think this should get dealt with by the directory :)
         topicCount++;
         int id = topicCount + this.id;
-        topics.put(id, new Topic(name, id, this));
+        Topic t = new Topic(name, id, this);
+        topics.put(id, t);
+        broker.addTopic(t);
         return id;
     }
 //    public int createNewTopic(int id, String name) {
