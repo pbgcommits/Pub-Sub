@@ -1,7 +1,9 @@
-package broker;
+package broker.connections;
 
 import Shared.Messenger;
 import Shared.Timeouts;
+import broker.Broker;
+import broker.Subscriber;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

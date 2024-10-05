@@ -14,18 +14,17 @@ import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 public class SubscriberMain {
-    final static int NUM_ARGS = 5;
+    final static int NUM_ARGS = 3;
     final static String USAGE_MESSAGE = "java -jar subscriber.jar " +
-            "username registry_ip registry_port directory_ip directory_port ";
+            "username registry_ip registry_port";
     final static String COMMAND_LIST = "Commands:\n" +
             SubscriberCommand.getSubscriberCommandUsage() + GlobalCommand.getGlobalCommandUsage();
     final static InputVerifier v = new InputVerifier();
     public static void main(String[] args) {
-        int directoryPort, registryPort;
+        int registryPort;
         // Verify command line args
         try {
             registryPort = v.verifyPort(args, 2, NUM_ARGS, USAGE_MESSAGE);
-//            directoryPort = v.verifyPort(args, 4, NUM_ARGS, USAGE_MESSAGE);
         }
         catch (IllegalArgumentException e) {
             System.out.println(e.getMessage());
@@ -34,7 +33,6 @@ public class SubscriberMain {
         ISubscriber subscriber;
         String username = args[0];
         String registryIP = args[1];
-//        String directoryIP = args[3];
         Socket s;
         try {
             Registry registry = LocateRegistry.getRegistry(registryIP, registryPort);
@@ -53,10 +51,6 @@ public class SubscriberMain {
                 System.out.println(e.getMessage());
                 return;
             }
-//            broker.addSubscriber(s, username);
-//            d.addSubscriber(username);
-//            ISubscriberFactory sf = (ISubscriberFactory) registry.lookup("SubscriberFactory");
-//            sf.createSubscriber(args[0]);
             // TODO: make this more robust (rather than just waiting an arbitrary amount of time)
             // there is some delay in the new subscriber object actually being bound
             Thread.sleep(1000);
@@ -152,44 +146,5 @@ public class SubscriberMain {
             System.out.println(e.getMessage());
         }
         return true;
-//        switch (input[0]) {
-//            case "h":
-//            case "help":
-//                System.out.println(COMMAND_LIST);
-//                break;
-//            // close connection
-//            case "disconnect":
-//            case "d":
-//            case "dc":
-//                System.out.println("Logging out");
-//                return false;
-//            case "list":
-//                subscriber.listAllAvailableTopics();
-//                break;
-//            case "sub":
-//                try {
-//                    int id = verifyTopicId(input, 1, 2, "Usage: sub {topic_id}");
-//                    subscriber.subscribeToTopic(id);
-//                }
-//                catch (IllegalArgumentException e) {
-//                    System.out.println(e.getMessage());
-//                }
-//                break;
-//            case "current":
-//                subscriber.showCurrentSubscriptions();
-//                break;
-//            case "unsub":
-//                try {
-//                    int id = verifyTopicId(input, 1, 2, "Usage: unsub {topic_id}");
-//                    subscriber.unsubscribe(id);
-//                }
-//                catch (IllegalArgumentException e) {
-//                    System.out.println(e.getMessage());
-//                }
-//                break;
-//            default:
-//                System.out.println("Unrecognised command. Press \"h\" for a list of commands" + ".");
-//        }
-//        return true;
     }
 }

@@ -31,21 +31,11 @@ public class DirectoryMain {
         Registry registry;
         try {
             registry = LocateRegistry.getRegistry(rmiIP, rmiPort);
-//            SubscriberFactory sf = new SubscriberFactory(registry);
-//            registry.bind("SubscriberFactory", sf);
-//            PublisherFactory pf = new PublisherFactory(registry);
-//            registry.bind("PublisherFactory", pf);
-//            BrokerFactory bf = new BrokerFactory(registry);
-//            registry.bind("BrokerFactory", bf);
         }
         catch (RemoteException e) {
             System.out.println("Error creating RMI registry");
             return;
         }
-//        catch (AlreadyBoundException e) {
-//            System.out.println("Object " + e.getMessage() + "is already bound!");
-//            return;
-//        }
         // TODO: seems like it doesn't automatically terminate when the RMI registry shuts? random...
         try {
             Directory.init(directoryIP, directoryPort, registry);
@@ -57,30 +47,5 @@ public class DirectoryMain {
         }
         System.out.println("Directory is now running");
         directory = Directory.getInstance();
-//        ServerSocketFactory serverSocketFactory = ServerSocketFactory.getDefault();
-//        int brokerCount = 0;
-//        try (ServerSocket serverSocket = serverSocketFactory.createServerSocket(directoryPort)) {
-//            while (true) {
-//                // TODO: check for incoming brokers, publishers, subscribers, and allocate them accordingly
-//                Socket client = serverSocket.accept();
-////                brokerCount++;
-//                new Connector(client, directory).start();
-////                DataInputStream d = new DataInputStream(client.getInputStream());
-////                String input = d.readUTF();
-////                Messenger m = new Messenger();
-////                String connectionType = m.getConnectionType(input);
-////                String username = m.getUsername(input);
-////                if (connectionType.equals(m.subscriber())) {
-////                    directory.addSubscriber(client, username);
-////                } else if (connectionType.equals(m.publisher())) {
-////                    directory.addPublisher(client, username);
-////                }
-//            }
-//        }
-//        catch (IOException e) {
-//            System.out.println("issue w something");
-//            System.out.println(e.getMessage());
-//            e.printStackTrace();
-//        }
     }
 }

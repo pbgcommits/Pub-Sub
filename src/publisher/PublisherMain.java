@@ -15,9 +15,9 @@ import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 public class PublisherMain {
-    final static int NUM_ARGS = 5;
+    final static int NUM_ARGS = 3;
     final static String USAGE_MESSAGE = "java -jar publisher.jar " +
-            "username registry_ip registry_port directory_ip directory_port";
+            "username registry_ip registry_port";
     final static String COMMAND_LIST = "Available commands:\n" +
             PublisherCommand.getPublisherCommandUsage() + GlobalCommand.getGlobalCommandUsage();
     final static InputVerifier v = new InputVerifier();
@@ -26,7 +26,6 @@ public class PublisherMain {
         // Verify command line args
         try {
             registryPort = v.verifyPort(args, 2, NUM_ARGS, USAGE_MESSAGE);
-//            directoryPort = v.verifyPort(args, 4, NUM_ARGS, USAGE_MESSAGE);
         }
         catch (IllegalArgumentException e) {
             System.out.println(e.getMessage());
@@ -35,7 +34,6 @@ public class PublisherMain {
         IPublisher publisher;
         String username = args[0];
         String registryIP = args[1];
-//        String directoryIP = args[3];
         Socket s;
         try {
             Registry registry = LocateRegistry.getRegistry(registryIP, registryPort);
@@ -54,14 +52,10 @@ public class PublisherMain {
                 System.out.println(e.getMessage());
                 return;
             }
-//            directory.addPublisher(username);
-//            IPublisherFactory pf = (IPublisherFactory) registry.lookup("PublisherFactory");
-//            pf.createPublisher(args[0]);
             Thread.sleep(1000);
             publisher = (IPublisher) registry.lookup(username);
         }
         catch (RemoteException | NoSuchElementException | NotBoundException e) {
-//            System.out.println(e);
             System.out.println(e.getMessage());
             return;
         }
@@ -140,62 +134,5 @@ public class PublisherMain {
             System.out.println("Unrecognised command. Press \"h\" for a list of commands" + ".");
         }
         return true;
-//        switch (input[0]) {
-//            case "h":
-//            case "help":
-//                System.out.println(COMMAND_LIST);
-//                break;
-//            // close connection
-//            case "disconnect":
-//            case "d":
-//            case "dc":
-//                System.out.println("Logging out");
-//                return false;
-//            case "create":
-//                try {
-////                    int id = verifyTopicId(input, 1, 3, PublishCommand.CREATE.getUsage());
-////                    publisher.createNewTopic(id, input[2]);
-//                    // TODO: it would be nice if you could make a name with more than one word? but probably too annoying...
-//                    if (input.length != 2) throw new IllegalArgumentException("Usage: " + PublisherCommand.CREATE.getUsage());
-//                    int id = publisher.createNewTopic(input[1]);
-//                    System.out.println("Created new topic: " + input[1] + " with id " + id);
-//                }
-//                catch (IllegalArgumentException | LimitExceededException e) {
-//                    System.out.println(e.getMessage());
-//                }
-//                break;
-//            case "publish":
-//                try {
-//                    int id = verifyTopicId(input, 1, 3, PublisherCommand.PUBLISH.getUsage());
-//                    publisher.publish(id, input[2]);
-//                    System.out.println("Successfully published message");
-//                }
-//                catch (IllegalArgumentException | NoSuchElementException e) {
-//                    System.out.println(e.getMessage());
-//                }
-//                break;
-//            case "show":
-//                try {
-//                    int id = verifyTopicId(input, 1, 2, PublisherCommand.SHOW.getUsage());
-//                    System.out.println(publisher.show(id));
-//                }
-//                catch (IllegalArgumentException | NoSuchElementException e) {
-//                    System.out.println(e.getMessage());
-//                }
-//                break;
-//            case "delete":
-//                try {
-//                    int id = verifyTopicId(input, 1, 2, PublisherCommand.DELETE.getUsage());
-//                    publisher.delete(id);
-//                    System.out.println("Successfully deleted topic with id " + id);
-//                }
-//                catch (IllegalArgumentException | NoSuchElementException e) {
-//                    System.out.println(e.getMessage());
-//                }
-//                break;
-//            default:
-//                System.out.println("Unrecognised command. Press \"h\" for a list of commands" + ".");
-//        }
-//        return true;
     }
 }

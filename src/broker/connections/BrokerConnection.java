@@ -1,6 +1,7 @@
-package broker;
+package broker.connections;
 
 import Shared.Messenger;
+import broker.Broker;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -8,10 +9,10 @@ import java.net.Socket;
 import java.rmi.AlreadyBoundException;
 import java.util.NoSuchElementException;
 
-public class BrokerConnector extends Thread {
+public class BrokerConnection extends Thread {
     private Socket socket;
     private Broker broker;
-    public BrokerConnector(Socket socket, Broker b) {
+    public BrokerConnection(Socket socket, Broker b) {
         this.socket = socket;
         this.broker = b;
     }

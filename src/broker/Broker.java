@@ -1,9 +1,10 @@
 package broker;
 
 import Shared.IBroker;
-import Shared.ISubscriber;
 import Shared.ITopic;
 import Shared.Messenger;
+import broker.connections.PublisherConnection;
+import broker.connections.SubscriberConnection;
 
 import java.net.Socket;
 import java.rmi.AlreadyBoundException;

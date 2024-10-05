@@ -2,6 +2,7 @@ package broker;
 
 import Shared.IDirectory;
 import Shared.InputVerifier;
+import broker.connections.BrokerConnection;
 
 import javax.net.ServerSocketFactory;
 import java.io.IOException;
@@ -55,7 +56,7 @@ public class BrokerMain {
         try (ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(brokerPort)) {
             while (true) {
                 Socket client = server.accept();
-                new BrokerConnector(client, broker).start();
+                new BrokerConnection(client, broker).start();
                 // deal with client
 //                break;
             }
