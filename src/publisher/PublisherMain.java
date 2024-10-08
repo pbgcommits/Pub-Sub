@@ -103,8 +103,17 @@ public class PublisherMain {
         else if (command.equals(GlobalCommand.PublisherCommand.PUBLISH.toString())) {
             try {
                 // TODO : read in space separated message D:
-                int id = v.verifyTopicId(input, 1, 3, GlobalCommand.PublisherCommand.PUBLISH.getUsage());
-                publisher.publish(id, input[2]);
+                int id = v.verifyTopicId(input, 1, -1, GlobalCommand.PublisherCommand.PUBLISH.getUsage());
+                if (input.length < 3) {
+                    throw new IllegalArgumentException(GlobalCommand.PublisherCommand.PUBLISH.getUsage());
+                }
+                StringBuilder message = new StringBuilder();
+                message.append(input[2]);
+                for (int i = 3; i < input.length; i++) {
+                    message.append(" ");
+                    message.append(input[i]);
+                }
+                publisher.publish(id, message.toString());
                 System.out.println("Successfully published message");
             }
             catch (RemoteException | IllegalArgumentException | NoSuchElementException e) {

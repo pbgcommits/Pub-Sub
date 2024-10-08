@@ -20,9 +20,18 @@ public class InputVerifier {
         }
     }
 
+    /**
+     * Pass in numArguments = -1 to allow for an unknown number of args
+     * @param input
+     * @param index
+     * @param numArguments
+     * @param usage
+     * @return
+     * @throws IllegalArgumentException
+     */
     public int verifyTopicId(String[] input, int index, int numArguments, String usage) throws IllegalArgumentException {
         String prefixedUsage = "Usage: " + usage;
-        if (input.length != numArguments) {
+        if (input.length != numArguments && numArguments >= 0) {
             throw new IllegalArgumentException(prefixedUsage);
         }
         try {
