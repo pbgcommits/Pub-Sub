@@ -5,6 +5,7 @@ import Shared.IPublisher;
 import javax.naming.LimitExceededException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -89,10 +90,14 @@ public class Publisher extends UnicastRemoteObject implements IPublisher {
     public void delete (int id) throws NoSuchElementException {
         verifyTopic(id);
         Topic topic = topics.get(id);
-        for (String sub : topic.getSubscriberUsernames()) {
-            topic.removeSubscriber(sub);
+        ListIterator<String> iter = topic.getSubscriberUsernames().listIterator();
+        while (iter.hasNext()) {
+            topic.removeSelfFromSubscriber(iter.next());
+            iter.remove();
         }
         topics.remove(id);
+        broker.removeTopic(id);
+        System.out.println("Deleted topic " + id);
     }
 
     public Broker getBroker() {

@@ -47,9 +47,9 @@ public class BrokerMain {
 //            broker = (IBroker) registry.lookup("Broker" + brokerPort);
         }
         catch (RemoteException | NotBoundException e) {
-            System.out.println("one of these");
-            System.out.println(e.getMessage());
-            e.printStackTrace();
+            System.out.println("Directory is currently not online; please try again later.");
+//            System.out.println(e.getMessage());
+//            e.printStackTrace();
             return;
         }
         System.out.println("Broker is now connected to the network");

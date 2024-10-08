@@ -19,7 +19,7 @@ public class Messenger {
         return PUBLISHER_PREFIX + ":" + username;
     }
     public String writeMessageFromTopic(String message, int topicId, String topicName, String publisherName) {
-        return "From " + topicId + " (id " + topicId + ", published by " + publisherName + "):\n" + message;
+        return "From " + topicName + " (id " + topicId + ", published by " + publisherName + "):\n" + message;
     }
     public String writeTopicDeletionMessage(int topicId, String topicName, String publisherName) {
         return "The topic " + topicName + " (id " + topicId + ") has been deleted by " + publisherName + ".";

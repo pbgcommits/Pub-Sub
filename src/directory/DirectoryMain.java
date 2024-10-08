@@ -9,7 +9,8 @@ import java.rmi.registry.Registry;
 public class DirectoryMain {
     private static Directory directory;
     private static final int numArgs = 4;
-    private final static String USAGE_MESSAGE = "Usage: java -jar directory.jar rmi_ip rmi_port directory_ip directory_port";
+    private final static String USAGE_MESSAGE = "Usage: java -jar directory.jar " +
+            "{rmi_ip} {rmi_port} {directory_ip} {directory_port}";
     public static void main(String[] args) {
         if (args.length != numArgs) {
             System.out.println(USAGE_MESSAGE);
@@ -41,7 +42,7 @@ public class DirectoryMain {
             Directory.init(directoryIP, directoryPort, registry);
         }
         catch (RemoteException e) {
-            System.out.println("Issue starting directory");
+            System.out.println("RMI issue caused directory creation to fail; please try again later.");
             System.exit(1);
             return;
         }

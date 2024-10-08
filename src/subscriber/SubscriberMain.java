@@ -18,7 +18,7 @@ public class SubscriberMain {
     final static String USAGE_MESSAGE = "java -jar subscriber.jar " +
             "username registry_ip registry_port";
     final static String COMMAND_LIST = "Commands:\n" +
-            SubscriberCommand.getSubscriberCommandUsage() + GlobalCommand.getGlobalCommandUsage();
+            ISubscriber.SubscriberCommand.getSubscriberCommandUsage() + GlobalCommand.getGlobalCommandUsage();
     final static InputVerifier v = new InputVerifier();
     public static void main(String[] args) {
         int registryPort;
@@ -80,6 +80,7 @@ public class SubscriberMain {
         while (true) {
             String[] input = scanner.nextLine().split(" ");
             if (!handleInput(subscriber, input)) {
+                System.exit(0);
                 return;
             }
         }
@@ -110,25 +111,25 @@ public class SubscriberMain {
             }
         }
         try {
-            if (command.equals(SubscriberCommand.LIST.toString())) {
+            if (command.equals(ISubscriber.SubscriberCommand.LIST.toString())) {
                 String allTopics = subscriber.listAllAvailableTopics();
                 if (allTopics.equals("")) System.out.println("No topics currently available.");
                 else System.out.println(allTopics);
             }
-            else if (command.equals(SubscriberCommand.SUB.toString())) {
+            else if (command.equals(ISubscriber.SubscriberCommand.SUB.toString())) {
                 try {
                     int id = v.verifyTopicId(input, 1, 2, "Usage: sub {topic_id}");
                     subscriber.subscribeToTopic(id);
                     // todo - would be nice to display the topic name as well here if possible!
                     System.out.println("Subscribed to " + id);
-                } catch (NoSuchElementException e) {
+                } catch (NoSuchElementException | IllegalArgumentException e) {
                     System.out.println(e.getMessage());
                 }
             }
-            else if (command.equals(SubscriberCommand.CURRENT.toString())) {
+            else if (command.equals(ISubscriber.SubscriberCommand.CURRENT.toString())) {
                 System.out.println(subscriber.showCurrentSubscriptions());
             }
-            else if (command.equals(SubscriberCommand.UNSUB.toString())) {
+            else if (command.equals(ISubscriber.SubscriberCommand.UNSUB.toString())) {
                 try {
                     int id = v.verifyTopicId(input, 1, 2, "Usage: unsub {topic_id}");
                     subscriber.unsubscribe(id);

@@ -19,8 +19,8 @@ public class Directory extends UnicastRemoteObject implements IDirectory {
     private static Directory directory;
     private Registry registry;
 //    private BrokerFactory bf;
-    private final String ip;
-    private final int port;
+//    private final String ip;
+//    private final int port;
     private int brokerCount;
     private final List<IBroker> brokers;
     public static Directory getInstance() {
@@ -31,8 +31,8 @@ public class Directory extends UnicastRemoteObject implements IDirectory {
         directory = new Directory(ip, port, registry);
     }
     private Directory(String ip, int port, Registry registry) throws RemoteException {
-        this.ip = ip;
-        this.port = port;
+//        this.ip = ip;
+//        this.port = port;
         brokers = new ArrayList<>();
         brokerCount = 0;
         this.registry = registry;
@@ -89,7 +89,7 @@ public class Directory extends UnicastRemoteObject implements IDirectory {
 //    }
     @Override
     public IBroker getMostAvailableBroker() throws NoSuchElementException, RemoteException {
-        System.out.println("Requested broker access");
+        System.out.println("Somebody has requested an available broker");
         if (brokers.isEmpty()) {
             throw new NoSuchElementException("There are currently no brokers connected to the network!");
         }
@@ -101,7 +101,7 @@ public class Directory extends UnicastRemoteObject implements IDirectory {
         }
         catch (RemoteException e) {
             System.out.println("COULDN'T CONNECT TO A BROKER");
-            e.printStackTrace();
+//            e.printStackTrace();
         }
         return b;
     }

@@ -4,9 +4,6 @@ import Shared.ITopic;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class Topic implements ITopic, SubscriberTopic {
     final private Publisher publisher;
@@ -24,15 +21,27 @@ public class Topic implements ITopic, SubscriberTopic {
     }
     private int subscriberCount;
     final private int id;
+
+    /**
+     * Notifies a subscriber that the topic is being deleted from the network.
+     * @param username The subscriber to be notified.
+     */
+    public void removeSelfFromSubscriber(String username) {
+//        subscriberCount--;
+        publisher.getBroker().deleteTopicFromSubscriber(id, username);
+    }
+
+    /**
+     * Remove a subscriber from the given topic.
+     * @param username
+     */
     @Override
-    public synchronized void removeSubscriber(String username) {
+    public void removeSubscriber(String username) {
         subscriberCount--;
-        publisher.getBroker().removeTopicForSubscriber(id, username);
-//        subscribers.get(username).deleteTopic(id);
         subscribers.remove(username);
     }
     @Override
-    public synchronized void addSubscriber(String username) {
+    public void addSubscriber(String username) {
         subscriberCount++;
         subscribers.add(username);
     }

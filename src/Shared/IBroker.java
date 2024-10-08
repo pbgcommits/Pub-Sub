@@ -7,6 +7,7 @@ import java.rmi.AlreadyBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 public interface IBroker extends Remote, Connection {
     String getId() throws RemoteException;
@@ -26,7 +27,9 @@ public interface IBroker extends Remote, Connection {
 
     void addBroker(IBroker b) throws RemoteException;
 
-    boolean attemptRemoveTopicForSubscriber(int topicID, String username) throws RemoteException;
+    boolean attemptDeleteTopicFromSubscriber(int topicID, String username) throws RemoteException;
+
+    boolean attemptDeleteSubscriberFromTopic(int topicID, String username) throws RemoteException, NoSuchElementException;
 
     SubscriberTopic attemptAddSubscriberToTopic(int topicID, String username) throws RemoteException;
 

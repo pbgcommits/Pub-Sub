@@ -20,7 +20,7 @@ public class InputVerifier {
         }
     }
 
-    public static int verifyTopicId(String[] input, int index, int numArguments, String usage) throws IllegalArgumentException {
+    public int verifyTopicId(String[] input, int index, int numArguments, String usage) throws IllegalArgumentException {
         String prefixedUsage = "Usage: " + usage;
         if (input.length != numArguments) {
             throw new IllegalArgumentException(prefixedUsage);

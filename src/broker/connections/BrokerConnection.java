@@ -32,7 +32,7 @@ public class BrokerConnection extends Thread {
                 broker.addPublisher(socket, username);
             }
         }
-        catch (NoSuchElementException | IOException | AlreadyBoundException e) {
+        catch (NoSuchElementException | IOException e) {
             System.out.println("Error connecting new client to broker network");
             System.out.println(e.getMessage());
             e.printStackTrace();

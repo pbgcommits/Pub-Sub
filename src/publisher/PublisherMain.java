@@ -19,7 +19,7 @@ public class PublisherMain {
     final static String USAGE_MESSAGE = "java -jar publisher.jar " +
             "username registry_ip registry_port";
     final static String COMMAND_LIST = "Available commands:\n" +
-            PublisherCommand.getPublisherCommandUsage() + GlobalCommand.getGlobalCommandUsage();
+            GlobalCommand.PublisherCommand.getPublisherCommandUsage() + GlobalCommand.getGlobalCommandUsage();
     final static InputVerifier v = new InputVerifier();
     public static void main(String[] args) {
         int registryPort, directoryPort;
@@ -39,7 +39,7 @@ public class PublisherMain {
             Registry registry = LocateRegistry.getRegistry(registryIP, registryPort);
             IDirectory directory = (IDirectory) registry.lookup("Directory");
             IBroker broker = directory.getMostAvailableBroker();
-            System.out.println(broker.getId());
+            System.out.println("Connected to: " + broker.getId());
             try {
                 SocketFactory sf = SocketFactory.getDefault();
                 s = sf.createSocket(broker.getIp(), broker.getPort());
@@ -60,7 +60,7 @@ public class PublisherMain {
             return;
         }
         catch (InterruptedException e) {
-            System.out.println("Oh deary dar intterupted");
+            System.out.println("Oh deary dear interrupted");
             return;
         }
         System.out.println("Welcome, " + username);
@@ -70,6 +70,7 @@ public class PublisherMain {
         while (true) {
             String[] input = scanner.nextLine().split(" ");
             if (!handleInput(publisher, input)) {
+                System.exit(0);
                 return;
             }
         }
@@ -88,10 +89,10 @@ public class PublisherMain {
                 return false;
             }
         }
-        if (command.equals(PublisherCommand.CREATE.toString())) {
+        if (command.equals(GlobalCommand.PublisherCommand.CREATE.toString())) {
             try {
                 // TODO: it would be nice if you could make a name with more than one word? but probably too annoying...
-                if (input.length != 2) throw new IllegalArgumentException("Usage: " + PublisherCommand.CREATE.getUsage());
+                if (input.length != 2) throw new IllegalArgumentException("Usage: " + GlobalCommand.PublisherCommand.CREATE.getUsage());
                 int id = publisher.createNewTopic(input[1]);
                 System.out.println("Created new topic: " + input[1] + " with id " + id);
             }
@@ -99,30 +100,29 @@ public class PublisherMain {
                 System.out.println(e.getMessage());
             }
         }
-        else if (command.equals(PublisherCommand.PUBLISH.toString())) {
+        else if (command.equals(GlobalCommand.PublisherCommand.PUBLISH.toString())) {
             try {
                 // TODO : read in space separated message D:
-                int id = v.verifyTopicId(input, 1, 3, PublisherCommand.PUBLISH.getUsage());
+                int id = v.verifyTopicId(input, 1, 3, GlobalCommand.PublisherCommand.PUBLISH.getUsage());
                 publisher.publish(id, input[2]);
                 System.out.println("Successfully published message");
             }
             catch (RemoteException | IllegalArgumentException | NoSuchElementException e) {
                 System.out.println(e.getMessage());
-                e.printStackTrace();
             }
         }
-        else if (command.equals(PublisherCommand.SHOW.toString())) {
+        else if (command.equals(GlobalCommand.PublisherCommand.SHOW.toString())) {
             try {
-                int id = v.verifyTopicId(input, 1, 2, PublisherCommand.SHOW.getUsage());
+                int id = v.verifyTopicId(input, 1, 2, GlobalCommand.PublisherCommand.SHOW.getUsage());
                 System.out.println(publisher.show(id));
             }
             catch (RemoteException | IllegalArgumentException | NoSuchElementException e) {
                 System.out.println(e.getMessage());
             }
         }
-        else if (command.equals(PublisherCommand.DELETE.toString())) {
+        else if (command.equals(GlobalCommand.PublisherCommand.DELETE.toString())) {
             try {
-                int id = v.verifyTopicId(input, 1, 2, PublisherCommand.DELETE.getUsage());
+                int id = v.verifyTopicId(input, 1, 2, GlobalCommand.PublisherCommand.DELETE.getUsage());
                 publisher.delete(id);
                 System.out.println("Successfully deleted topic with id " + id);
             }
