@@ -1,7 +1,7 @@
 package subscriber;
 
-import Shared.Messenger;
-import Shared.Timeouts;
+import shared.Messenger;
+import shared.Timeouts;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.util.Date;
 
 public class SubServerConnection extends Thread {
     private Socket s;
@@ -36,7 +37,8 @@ public class SubServerConnection extends Thread {
                     output.writeUTF(online);
                     output.flush();
                     DataInputStream input = new DataInputStream(s.getInputStream());
-                    System.out.println(input.readUTF());
+                    Date date = new Date();
+                    System.out.println(date + " " + input.readUTF());
                 }
                 catch (SocketTimeoutException e) {
 //                    System.out.println("timed out!!");

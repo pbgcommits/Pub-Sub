@@ -1,6 +1,6 @@
 package broker;
 
-import Shared.IPublisher;
+import shared.IPublisher;
 
 import javax.naming.LimitExceededException;
 import java.rmi.RemoteException;
@@ -17,9 +17,9 @@ public class Publisher extends UnicastRemoteObject implements IPublisher {
     private int topicCount;
     private int id;
     private static int publisherCount = 0;
-    final private Map<Integer, Topic> topics;
+    final private Map<String, Topic> topics;
 
-    public Map<Integer, Topic> getTopics() {
+    public Map<String, Topic> getTopics() {
         return topics;
     }
 
@@ -45,7 +45,7 @@ public class Publisher extends UnicastRemoteObject implements IPublisher {
      * and assigns a name (not necessarily unique as multiple publishers may have topics with the same name).
      * */
     @Override
-    public int createNewTopic(String name) throws LimitExceededException {
+    public String createNewTopic(String name, String id) throws LimitExceededException, RemoteException {
         if (topicCount >= MAX_TOPIC_COUNT) {
             throw new LimitExceededException("Publishers may only host up to " + (MAX_TOPIC_COUNT - 1) + " topics.");
         }
@@ -53,7 +53,7 @@ public class Publisher extends UnicastRemoteObject implements IPublisher {
         // TODO which topic has which id? what if they both have the same id?!
         // TODO okay I think this should get dealt with by the directory :)
         topicCount++;
-        int id = topicCount + this.id;
+//        int id = topicCount + this.id;
         Topic t = new Topic(name, id, this);
         topics.put(id, t);
         broker.addTopic(t);
@@ -71,14 +71,14 @@ public class Publisher extends UnicastRemoteObject implements IPublisher {
      * The message should be sent to all topic subscribers. Each message will be limited to a maximum of 100 characters.
      * It is not required to persist messages in any of the brokers.*/
     @Override
-    public void publish (int id, String message) throws NoSuchElementException {
+    public void publish (String id, String message) throws NoSuchElementException {
         verifyTopic(id);
         topics.get(id).publishMessage(message);
     }
     /** Show Subscriber Count: Shows the total number of subscribers for each topic associated with this publisher.
      * */
     @Override
-    public int show (int id) throws NoSuchElementException {
+    public int show (String id) throws NoSuchElementException {
         verifyTopic(id);
 //        System.out.println(topics.get(id).getSubscriberCount());
         return topics.get(id).getSubscriberCount();
@@ -87,7 +87,7 @@ public class Publisher extends UnicastRemoteObject implements IPublisher {
      * A notification message should be sent to each subscriber.
      * */
     @Override
-    public void delete (int id) throws NoSuchElementException {
+    public void delete (String id) throws NoSuchElementException {
         verifyTopic(id);
         Topic topic = topics.get(id);
         ListIterator<String> iter = topic.getSubscriberUsernames().listIterator();
@@ -105,7 +105,7 @@ public class Publisher extends UnicastRemoteObject implements IPublisher {
     }
 
     /** Checks that the given topicID exists and is registered with this publisher. */
-    private void verifyTopic(int id) throws NoSuchElementException {
+    private void verifyTopic(String id) throws NoSuchElementException {
         if (topics.get(id) == null) {
             throw new NoSuchElementException("Publisher does not have a topic with this id");
         }

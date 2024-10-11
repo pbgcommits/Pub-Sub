@@ -1,8 +1,8 @@
 package broker;
 
-import Shared.IBroker;
-import Shared.ITopic;
-import Shared.Messenger;
+import shared.IBroker;
+import shared.ITopic;
+import shared.Messenger;
 import broker.connections.PublisherConnection;
 import broker.connections.SubscriberConnection;
 
@@ -14,7 +14,7 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 
 public class Broker extends UnicastRemoteObject implements IBroker {
-    private final Map<Integer, Topic> topics;
+    private final Map<String, Topic> topics;
     private final Map<String, Publisher> publishers;
     private final Map<String, Subscriber> subscribers;
     private final Map<Subscriber, SubscriberConnection> subscriberConnections;
@@ -61,7 +61,7 @@ public class Broker extends UnicastRemoteObject implements IBroker {
      * @return Whether this broker had the connection information to the given subscriber.
      */
     @Override
-    public boolean passMessage(Integer topicID, String message, String topicName,
+    public boolean passMessage(String topicID, String message, String topicName,
                                String publisherName, String sub) {
         if (subscribers.containsKey(sub)) {
             subscribers.get(sub).sendMessage(new Messenger().writeMessageFromTopic(message, topicID, topicName, publisherName));
@@ -79,7 +79,7 @@ public class Broker extends UnicastRemoteObject implements IBroker {
      * @param subs The list of subscribers to publish the message to.
      * @throws NoSuchElementException If this broker has no records on the given topic.
      */
-    public void sendMessageToSubs(Integer topicID, String message, String topicName,
+    public void sendMessageToSubs(String topicID, String message, String topicName,
                                   String publisherName, List<String> subs) throws NoSuchElementException {
         if (topics.get(topicID) == null) {
             System.out.println("Sending to non-existent topic");
@@ -142,7 +142,7 @@ public class Broker extends UnicastRemoteObject implements IBroker {
      */
     public void removePublisher(Publisher p) {
         publishers.remove(p);
-        for (int id : p.getTopics().keySet()) {
+        for (String id : p.getTopics().keySet()) {
             p.delete(id);
 //            topics.remove(id);
         }
@@ -182,7 +182,7 @@ public class Broker extends UnicastRemoteObject implements IBroker {
      * @param s The subscriber to be removed.
      */
     public void removeSubscriber(Subscriber s) {
-        for (int id : s.getTopics()) {
+        for (String id : s.getTopics()) {
             topics.get(id).removeSubscriber(s.getName());
         }
         subscribers.remove(s);
@@ -216,8 +216,8 @@ public class Broker extends UnicastRemoteObject implements IBroker {
      * @throws NoSuchElementException If the subscriber wasn't already subscribed to the topic.
      */
     @Override
-    public boolean attemptDeleteTopicFromSubscriber(int topicID, String username) throws NoSuchElementException {
-        System.out.println("DELEETING TOPIC FROM SUBSCRIBER");
+    public boolean attemptDeleteTopicFromSubscriber(String topicID, String username) throws NoSuchElementException {
+        System.out.println("DELETING TOPIC FROM SUBSCRIBER");
         if (subscribers.containsKey(username)) {
             subscribers.get(username).deleteTopic(topicID);
             return true;
@@ -232,7 +232,7 @@ public class Broker extends UnicastRemoteObject implements IBroker {
      * @throws NoSuchElementException Either the subscriber was not subscribed to the topic, or the subscriber is
      *                                not present in the network.
      */
-    public void deleteTopicFromSubscriber(int topicID, String username) throws NoSuchElementException {
+    public void deleteTopicFromSubscriber(String topicID, String username) throws NoSuchElementException {
         System.out.println("TOPIC IS GETTING DELETED D:");
         boolean success = attemptDeleteTopicFromSubscriber(topicID, username);
         if (success) {
@@ -260,7 +260,7 @@ public class Broker extends UnicastRemoteObject implements IBroker {
      * @throws NoSuchElementException If the subscriber wasn't already subscribed to this topic.
      */
     @Override
-    public boolean attemptDeleteSubscriberFromTopic(int topicID, String username) throws NoSuchElementException {
+    public boolean attemptDeleteSubscriberFromTopic(String topicID, String username) throws NoSuchElementException {
         if (topics.containsKey(topicID)) {
             topics.get(topicID).removeSubscriber(username);
             return true;
@@ -275,7 +275,7 @@ public class Broker extends UnicastRemoteObject implements IBroker {
      * @throws NoSuchElementException Either the subscriber was not subscribed to the topic, or the subscriber is
      *                                not present in the network.
      */
-    public void deleteSubscriberFromTopic(int topicID, String username) throws NoSuchElementException {
+    public void deleteSubscriberFromTopic(String topicID, String username) throws NoSuchElementException {
         boolean success = attemptDeleteSubscriberFromTopic(topicID, username);
         if (success) {
             return;
@@ -289,24 +289,30 @@ public class Broker extends UnicastRemoteObject implements IBroker {
         }
         catch (RemoteException e) {
             System.out.println("A BROKER DISCONNECTED");
-            e.printStackTrace();
+//            e.printStackTrace();
         }
         throw new NoSuchElementException("Subscriber could not be found");
     }
 
     @Override
-    public SubscriberTopic attemptAddSubscriberToTopic(int topicID, String username) {
+    public SubscriberTopic attemptAddSubscriberToTopic(String topicID, String username) {
         for (Publisher p : publishers.values()) {
             if (p.getTopics().containsKey(topicID)) {
                 ITopic t = p.getTopics().get(topicID);
-                t.addSubscriber(username);
+                try {
+                    t.addSubscriber(username);
+                }
+                catch (RemoteException e) {
+                    System.out.println("Failed to subscribe " + username + " to topic");
+                    return null;
+                }
                 SubscriberTopic st = p.getTopics().get(topicID);
                 return st;
             }
         }
         return null;
     }
-    public SubscriberTopic addSubscriberToTopic(int topicID, String username) throws NoSuchElementException {
+    public SubscriberTopic addSubscriberToTopic(String topicID, String username) throws NoSuchElementException {
         SubscriberTopic t = attemptAddSubscriberToTopic(topicID, username);
         if (t != null) {
             return t;
@@ -333,26 +339,31 @@ public class Broker extends UnicastRemoteObject implements IBroker {
 
     public String getAllTopics() {
         StringBuilder sb = new StringBuilder();
-        for (ITopic t : getTopics()) {
-            sb.append(t.toString() + "\n");
+        for (Topic t : topics.values()) {
+            sb.append(t.getString() + "\n");
         }
         for (IBroker b : brokers) {
             try {
                 for (ITopic t : b.getTopics()) {
-                    sb.append(t.toString() + "\n");
+                    sb.append(t.getString() + "\n");
                 }
             }
             catch (RemoteException e) {
-                System.out.println("COULDN'T CONNECT TO BROKER:");
+                System.out.println("Getting topics failed");
+                sb.append("Partial list; could not connect to some brokers");
                 e.printStackTrace();
             }
+        }
+        // remove final newline
+        if (sb.length() > 0) {
+            sb.setLength(sb.length() - 1);
         }
         return sb.toString();
     }
     public void addTopic(Topic t) {
         topics.put(t.getId(), t);
     }
-    public void removeTopic(int topicId) {
+    public void removeTopic(String topicId) {
         topics.remove(topicId);
     }
 }

@@ -1,6 +1,6 @@
 package directory;
 
-import Shared.Messenger;
+import shared.Messenger;
 
 import java.io.DataInputStream;
 import java.io.IOException;

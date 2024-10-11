@@ -1,4 +1,4 @@
-package Shared;
+package shared;
 
 public class Messenger {
     public String getConnectionType(String input) {
@@ -18,11 +18,12 @@ public class Messenger {
     public String newPublisherMessage(String username) {
         return PUBLISHER_PREFIX + ":" + username;
     }
-    public String writeMessageFromTopic(String message, int topicId, String topicName, String publisherName) {
-        return "From " + topicName + " (id " + topicId + ", published by " + publisherName + "):\n" + message;
+    public String writeMessageFromTopic(String message, String topicId, String topicName, String publisherName) {
+//        return topicName + ":" + topicId + ":" + publisherName + " : " + message;
+        return "New message from \"" + topicName + "\" (id " + topicId + ", published by " + publisherName + "): " + message;
     }
-    public String writeTopicDeletionMessage(int topicId, String topicName, String publisherName) {
-        return "The topic " + topicName + " (id " + topicId + ") has been deleted by " + publisherName + ".";
+    public String writeTopicDeletionMessage(String topicId, String topicName, String publisherName) {
+        return "The topic \"" + topicName + "\" (id " + topicId + ") has been deleted by " + publisherName + ".";
     }
     public String writeOnlineMessage() {
         return "ONLINE";

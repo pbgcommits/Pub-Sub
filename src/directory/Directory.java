@@ -1,8 +1,8 @@
 package directory;
 
-import Shared.IBroker;
-import Shared.IDirectory;
-import Shared.Messenger;
+import shared.IBroker;
+import shared.IDirectory;
+import shared.Messenger;
 
 import java.net.Socket;
 import java.rmi.AlreadyBoundException;
@@ -18,21 +18,16 @@ import java.util.NoSuchElementException;
 public class Directory extends UnicastRemoteObject implements IDirectory {
     private static Directory directory;
     private Registry registry;
-//    private BrokerFactory bf;
-//    private final String ip;
-//    private final int port;
     private int brokerCount;
     private final List<IBroker> brokers;
     public static Directory getInstance() {
         return directory;
     }
-    public static void init(String ip, int port, Registry registry) throws RemoteException {
+    public static void init( Registry registry) throws RemoteException {
         if (directory != null) return;
-        directory = new Directory(ip, port, registry);
+        directory = new Directory(registry);
     }
-    private Directory(String ip, int port, Registry registry) throws RemoteException {
-//        this.ip = ip;
-//        this.port = port;
+    private Directory(Registry registry) throws RemoteException {
         brokers = new ArrayList<>();
         brokerCount = 0;
         this.registry = registry;
@@ -42,20 +37,10 @@ public class Directory extends UnicastRemoteObject implements IDirectory {
             System.out.println("Resetting directory");
             registry.rebind(Messenger.DIRECTORY_RMI_NAME, this);
         }
-//        try {
-//            bf = new BrokerFactory(registry);
-//        } catch (RemoteException e) {
-//            throw new RuntimeException(e);
-//        }
     }
-
-//    public Registry
 
     @Override
     public void addBroker(String id) throws RemoteException {
-        /** TODO  This code BREAKS if a broker disconnects from the system!!!
-         * TODO i might have fixed it with the try block in the for loop
-         * TODO okay i didnt but atl east i tried :)*/
         IBroker b;
         try {
             b = (IBroker) registry.lookup(id);
@@ -71,9 +56,11 @@ public class Directory extends UnicastRemoteObject implements IDirectory {
             try {
                 // order is important; otherwise b may add a disconnected broker (b2)
                 b2.addBroker(b);
+                System.out.println(b2.getId());
                 b.addBroker(b2);
             }
             catch (RemoteException e) {
+                System.out.println("Removing disconnected broker");
                 iter.remove();
             }
         }
@@ -81,12 +68,6 @@ public class Directory extends UnicastRemoteObject implements IDirectory {
         brokerCount++;
         System.out.println("Added broker with id " + id);
     }
-//    // TODO: I'm going to have to make sure this is all synchronized - might be a use for semaphores?? idk
-//    // alternatively just
-//    public void connectToBroker() throws NoSuchElementException {
-//        IBroker b = getMostAvailableBroker();
-//        // TODO: do other stuff
-//    }
     @Override
     public IBroker getMostAvailableBroker() throws NoSuchElementException, RemoteException {
         System.out.println("Somebody has requested an available broker");

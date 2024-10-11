@@ -1,12 +1,11 @@
 package broker.connections;
 
-import Shared.Messenger;
+import shared.Messenger;
 import broker.Broker;
 
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.rmi.AlreadyBoundException;
 import java.util.NoSuchElementException;
 
 public class BrokerConnection extends Thread {

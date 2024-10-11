@@ -1,4 +1,4 @@
-package Shared;
+package shared;
 
 public class Timeouts {
     public final static int SERVER_TIMEOUT = 3000;

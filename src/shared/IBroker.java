@@ -1,4 +1,4 @@
-package Shared;
+package shared;
 
 import broker.SubscriberTopic;
 
@@ -16,7 +16,7 @@ public interface IBroker extends Remote, Connection {
 //
 //    String getIp() throws RemoteException;
 
-    boolean passMessage(Integer topicID, String message, String topicName,
+    boolean passMessage(String topicID, String message, String topicName,
                         String publisherName, String sub) throws RemoteException;
 
     int getNumConnections() throws RemoteException;
@@ -27,11 +27,11 @@ public interface IBroker extends Remote, Connection {
 
     void addBroker(IBroker b) throws RemoteException;
 
-    boolean attemptDeleteTopicFromSubscriber(int topicID, String username) throws RemoteException;
+    boolean attemptDeleteTopicFromSubscriber(String topicID, String username) throws RemoteException;
 
-    boolean attemptDeleteSubscriberFromTopic(int topicID, String username) throws RemoteException, NoSuchElementException;
+    boolean attemptDeleteSubscriberFromTopic(String topicID, String username) throws RemoteException, NoSuchElementException;
 
-    SubscriberTopic attemptAddSubscriberToTopic(int topicID, String username) throws RemoteException;
+    SubscriberTopic attemptAddSubscriberToTopic(String topicID, String username) throws RemoteException;
 
     List<ITopic> getTopics() throws RemoteException;
 }

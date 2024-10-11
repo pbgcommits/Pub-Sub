@@ -1,8 +1,7 @@
 package publisher;
 
-import Shared.Messenger;
-import Shared.Timeouts;
-import broker.Publisher;
+import shared.Messenger;
+import shared.Timeouts;
 
 import java.io.DataOutputStream;
 import java.io.IOException;

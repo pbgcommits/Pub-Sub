@@ -1,12 +1,11 @@
 package broker.connections;
 
-import Shared.Messenger;
-import Shared.Timeouts;
+import shared.Messenger;
+import shared.Timeouts;
 import broker.Broker;
 import broker.Publisher;
 
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;

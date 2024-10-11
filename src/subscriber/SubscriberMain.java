@@ -1,6 +1,6 @@
 package subscriber;
 
-import Shared.*;
+import shared.*;
 
 import javax.net.SocketFactory;
 import java.io.DataOutputStream;
@@ -18,7 +18,7 @@ public class SubscriberMain {
     final static String USAGE_MESSAGE = "java -jar subscriber.jar " +
             "username registry_ip registry_port";
     final static String COMMAND_LIST = "Commands:\n" +
-            ISubscriber.SubscriberCommand.getSubscriberCommandUsage() + GlobalCommand.getGlobalCommandUsage();
+            SubscriberCommand.getSubscriberCommandUsage() + GlobalCommand.getGlobalCommandUsage();
     final static InputVerifier v = new InputVerifier();
     public static void main(String[] args) {
         int registryPort;
@@ -38,7 +38,7 @@ public class SubscriberMain {
             Registry registry = LocateRegistry.getRegistry(registryIP, registryPort);
             IDirectory d = (IDirectory) registry.lookup(Messenger.DIRECTORY_RMI_NAME);
             IBroker broker = d.getMostAvailableBroker();
-            System.out.println(broker.getId());
+            System.out.println("Connecting to: " + broker.getId());
             // Send a message to the broker telling it to create a new "Subscriber" object and export it to RMI
             try {
                 SocketFactory sf = SocketFactory.getDefault();
@@ -86,17 +86,17 @@ public class SubscriberMain {
         }
     }
     private static boolean handleInput(ISubscriber subscriber, String[] input) {
-        try {
-            if (subscriber.hasMessage()) {
-                System.out.println(subscriber.getMessage());
-                // TODO: this might not actually update D: - so tbh probably need to use some sort of lock
-                while (subscriber.hasMessage()) {/* wait so it doesn't print a million times*/}
-            }
-        }
-        catch (RemoteException e) {
-            // TODO - this might actually deal with one of the disconnection issues?!
-            System.out.println(e.getMessage());
-        }
+//        try {
+//            if (subscriber.hasMessage()) {
+//                System.out.println(subscriber.getMessage());
+//                // TODO: this might not actually update D: - so tbh probably need to use some sort of lock
+//                while (subscriber.hasMessage()) {/* wait so it doesn't print a million times*/}
+//            }
+//        }
+//        catch (RemoteException e) {
+//            // TODO - this might actually deal with one of the disconnection issues?!
+//            System.out.println(e.getMessage());
+//        }
         String command = input[0];
         for (String h : GlobalCommand.HELP.getOptions()) {
             if (command.equals(h)) {
@@ -111,31 +111,37 @@ public class SubscriberMain {
             }
         }
         try {
-            if (command.equals(ISubscriber.SubscriberCommand.LIST.toString())) {
+            if (command.equals(SubscriberCommand.LIST.toString())) {
                 String allTopics = subscriber.listAllAvailableTopics();
                 if (allTopics.equals("")) System.out.println("No topics currently available.");
                 else System.out.println(allTopics);
             }
-            else if (command.equals(ISubscriber.SubscriberCommand.SUB.toString())) {
+            else if (command.equals(SubscriberCommand.SUB.toString())) {
                 try {
-                    int id = v.verifyTopicId(input, 1, 2, "Usage: sub {topic_id}");
+//                    int id = v.verifyTopicId(input, 1, 2, "Usage: sub {topic_id}");
+                    if (input.length != 2) throw new IllegalArgumentException("Usage: " + SubscriberCommand.SUB.getUsage());
+                    String id = input[1];
                     subscriber.subscribeToTopic(id);
                     // todo - would be nice to display the topic name as well here if possible!
                     System.out.println("Subscribed to " + id);
-                } catch (NoSuchElementException | IllegalArgumentException e) {
+                }
+                catch (NoSuchElementException | IllegalArgumentException e) {
                     System.out.println(e.getMessage());
                 }
             }
-            else if (command.equals(ISubscriber.SubscriberCommand.CURRENT.toString())) {
+            else if (command.equals(SubscriberCommand.CURRENT.toString())) {
                 System.out.println(subscriber.showCurrentSubscriptions());
             }
-            else if (command.equals(ISubscriber.SubscriberCommand.UNSUB.toString())) {
+            else if (command.equals(SubscriberCommand.UNSUB.toString())) {
                 try {
-                    int id = v.verifyTopicId(input, 1, 2, "Usage: unsub {topic_id}");
+//                    int id = v.verifyTopicId(input, 1, 2, "Usage: unsub {topic_id}");
+                    if (input.length != 2) throw new IllegalArgumentException("Usage: " + SubscriberCommand.SUB.getUsage());
+                    String id = input[1];
                     subscriber.unsubscribe(id);
                     // TODO - would be nice to show the topic name here!
                     System.out.println("Unsubscribed from " + id);
-                } catch (IllegalArgumentException e) {
+                }
+                catch (IllegalArgumentException e) {
                     System.out.println(e.getMessage());
                 }
             }

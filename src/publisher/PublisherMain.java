@@ -1,6 +1,6 @@
 package publisher;
 
-import Shared.*;
+import shared.*;
 
 import javax.naming.LimitExceededException;
 import javax.net.SocketFactory;
@@ -19,7 +19,7 @@ public class PublisherMain {
     final static String USAGE_MESSAGE = "java -jar publisher.jar " +
             "username registry_ip registry_port";
     final static String COMMAND_LIST = "Available commands:\n" +
-            GlobalCommand.PublisherCommand.getPublisherCommandUsage() + GlobalCommand.getGlobalCommandUsage();
+            PublisherCommand.getPublisherCommandUsage() + GlobalCommand.getGlobalCommandUsage();
     final static InputVerifier v = new InputVerifier();
     public static void main(String[] args) {
         int registryPort, directoryPort;
@@ -89,24 +89,28 @@ public class PublisherMain {
                 return false;
             }
         }
-        if (command.equals(GlobalCommand.PublisherCommand.CREATE.toString())) {
+        if (command.equals(PublisherCommand.CREATE.toString())) {
             try {
-                // TODO: it would be nice if you could make a name with more than one word? but probably too annoying...
-                if (input.length != 2) throw new IllegalArgumentException("Usage: " + GlobalCommand.PublisherCommand.CREATE.getUsage());
-                int id = publisher.createNewTopic(input[1]);
-                System.out.println("Created new topic: " + input[1] + " with id " + id);
+                if (input.length < 3) throw new IllegalArgumentException("Usage: " + PublisherCommand.CREATE.getUsage());
+                StringBuilder topicName = new StringBuilder();
+                topicName.append(input[2]);
+                for (int i = 3; i < input.length; i++) {
+                    topicName.append(" ");
+                    topicName.append(input[i]);
+                }
+                String id = publisher.createNewTopic(topicName.toString(), input[1]);
+                System.out.println("Created new topic: " + topicName.toString() + " with id " + id);
             }
             catch (RemoteException | IllegalArgumentException | LimitExceededException e) {
                 System.out.println(e.getMessage());
             }
         }
-        else if (command.equals(GlobalCommand.PublisherCommand.PUBLISH.toString())) {
+        else if (command.equals(PublisherCommand.PUBLISH.toString())) {
             try {
                 // TODO : read in space separated message D:
-                int id = v.verifyTopicId(input, 1, -1, GlobalCommand.PublisherCommand.PUBLISH.getUsage());
-                if (input.length < 3) {
-                    throw new IllegalArgumentException(GlobalCommand.PublisherCommand.PUBLISH.getUsage());
-                }
+//                int id = v.verifyTopicId(input, 1, -1, GlobalCommand.PublisherCommand.PUBLISH.getUsage());
+                if (input.length < 3) throw new IllegalArgumentException("Usage: " + PublisherCommand.PUBLISH.getUsage());
+                String id = input[1];
                 StringBuilder message = new StringBuilder();
                 message.append(input[2]);
                 for (int i = 3; i < input.length; i++) {
@@ -120,18 +124,22 @@ public class PublisherMain {
                 System.out.println(e.getMessage());
             }
         }
-        else if (command.equals(GlobalCommand.PublisherCommand.SHOW.toString())) {
+        else if (command.equals(PublisherCommand.SHOW.toString())) {
             try {
-                int id = v.verifyTopicId(input, 1, 2, GlobalCommand.PublisherCommand.SHOW.getUsage());
+//                int id = v.verifyTopicId(input, 1, 2, GlobalCommand.PublisherCommand.SHOW.getUsage());
+                if (input.length != 2) throw new IllegalArgumentException("Usage: " + PublisherCommand.SHOW.getUsage());
+                String id = input[1];
                 System.out.println(publisher.show(id));
             }
             catch (RemoteException | IllegalArgumentException | NoSuchElementException e) {
                 System.out.println(e.getMessage());
             }
         }
-        else if (command.equals(GlobalCommand.PublisherCommand.DELETE.toString())) {
+        else if (command.equals(PublisherCommand.DELETE.toString())) {
             try {
-                int id = v.verifyTopicId(input, 1, 2, GlobalCommand.PublisherCommand.DELETE.getUsage());
+//                int id = v.verifyTopicId(input, 1, 2, GlobalCommand.PublisherCommand.DELETE.getUsage());
+                if (input.length != 2) throw new IllegalArgumentException("Usage: " + PublisherCommand.DELETE.getUsage());
+                String id = input[1];
                 publisher.delete(id);
                 System.out.println("Successfully deleted topic with id " + id);
             }

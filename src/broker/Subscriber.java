@@ -1,7 +1,8 @@
 package broker;
 
-import Shared.ISubscriber;
-import Shared.Messenger;
+import shared.ISubscriber;
+import shared.Messenger;
+import shared.SubscriberCommand;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
@@ -15,7 +16,7 @@ import java.util.*;
  * • There can be up to 10 subscribers present in the system at the same time. */
 public class Subscriber extends UnicastRemoteObject implements ISubscriber {
     private String message = null;
-    private Map<Integer, SubscriberTopic> currentTopics; /** Subscribers may subscribe to multiple topics (from the same or different publishers). */
+    private Map<String, SubscriberTopic> currentTopics; /** Subscribers may subscribe to multiple topics (from the same or different publishers). */
     private String directoryIP; /** A subscriber can connect to only one broker at a time, specified via the command line at runtime. */
     private int directoryPort;
     private final Broker broker;
@@ -38,7 +39,7 @@ public class Subscriber extends UnicastRemoteObject implements ISubscriber {
      * Subscribes to a topic using the topic’s unique ID. The subscriber will receive all future messages published on this topic.
      * */
     @Override
-    public void subscribeToTopic(int id) throws NoSuchElementException, IllegalArgumentException {
+    public void subscribeToTopic(String id) throws NoSuchElementException, IllegalArgumentException {
         System.out.println(getName() + " is attempting to subscribe to topic " + id + ".");
         if (currentTopics.get(id) != null) {
             throw new IllegalArgumentException("Already subscribed to this topic!");
@@ -52,7 +53,12 @@ public class Subscriber extends UnicastRemoteObject implements ISubscriber {
             System.out.println("Topic " + id + " does not exist");
             throw new NoSuchElementException("Topic " + id + " does not exist");
         }
-        System.out.println(getName() + " subscribed to " + currentTopics.get(id));
+        try {
+            System.out.println(getName() + " subscribed to " + currentTopics.get(id).getString());
+        }
+        catch (RemoteException e) {
+            System.out.println("RMI error related to topic subscription. ");
+        }
     }
     /** Show current subscriptions:
      * Lists the active subscriptions with topic ID, topic name, and publisher name.*/
@@ -64,7 +70,12 @@ public class Subscriber extends UnicastRemoteObject implements ISubscriber {
         }
         StringBuilder sb = new StringBuilder("Current subscriptions:\n");
         for (SubscriberTopic t : currentTopics.values()) {
-            sb.append(t.toString() + "\n");
+            try {
+                sb.append(t.getString() + "\n");
+            }
+            catch (RemoteException e) {
+                return "Error collecting topic names.";
+            }
         }
         return sb.toString();
     }
@@ -72,7 +83,7 @@ public class Subscriber extends UnicastRemoteObject implements ISubscriber {
      * Stops receiving messages from a topic. The broker sends a notification message confirming the unsubscription.
      * */
     @Override
-    public void unsubscribe(int id) throws IllegalArgumentException {
+    public void unsubscribe(String id) throws IllegalArgumentException {
         if (currentTopics.get(id) == null) {
             throw new IllegalArgumentException("You are not subscribed to this topic!");
         }
@@ -90,6 +101,11 @@ public class Subscriber extends UnicastRemoteObject implements ISubscriber {
     public boolean hasMessage() {
         return message != null;
     }
+
+    /**
+     * Gets the current message waiting to be sent to subscriber, then removes it from the queue.
+     * @return
+     */
     @Override
     public String getMessage() {
         String message = this.message;
@@ -99,17 +115,22 @@ public class Subscriber extends UnicastRemoteObject implements ISubscriber {
     /** A subscriber should receive a real-time notification message if they unsubscribe from a topic
      * or if a topic they are subscribed to is deleted by the publisher.
      * (This is specifically to deal with a topic being deleted by its publisher) */
-    public void deleteTopic(int id) throws NoSuchElementException {
+    public void deleteTopic(String id) throws NoSuchElementException {
         SubscriberTopic t = currentTopics.get(id);
         if (t == null) {
             // I'm not sure this should ever happen?
             throw new NoSuchElementException("You are not subscribed to this topic!");
         }
-        sendMessage(new Messenger().writeTopicDeletionMessage(id, t.getName(), t.getPublisherName()));
+        try {
+            sendMessage(new Messenger().writeTopicDeletionMessage(id, t.getName(), t.getPublisherName()));
+        }
+        catch (RemoteException e) {
+            System.out.println("Remote issue");
+        }
         currentTopics.remove(id);
         System.out.println("Topic " + id + " deleted by its publisher.");
     }
-    public Set<Integer> getTopics() {
+    public Set<String> getTopics() {
         return currentTopics.keySet();
     }
     public String getName() {

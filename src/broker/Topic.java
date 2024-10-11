@@ -1,26 +1,29 @@
 package broker;
 
-import Shared.ITopic;
+import shared.ITopic;
 
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Topic implements ITopic, SubscriberTopic {
+public class Topic extends UnicastRemoteObject implements ITopic, SubscriberTopic {
     final private Publisher publisher;
     final private List<String> subscribers;
     public List<String> getSubscriberUsernames() {
         return subscribers;
     }
     final private String name;
-    public Topic(String name, int id, Publisher publisher) {
+    public Topic(String name, String id, Publisher publisher) throws RemoteException {
         subscriberCount = 0;
         subscribers = new ArrayList<>();
         this.id = id;
         this.name = name;
         this.publisher = publisher;
+        System.out.println("New topic created: " + getString());
     }
     private int subscriberCount;
-    final private int id;
+    final private String id;
 
     /**
      * Notifies a subscriber that the topic is being deleted from the network.
@@ -54,7 +57,7 @@ public class Topic implements ITopic, SubscriberTopic {
         return name;
     }
     @Override
-    public int getId() {
+    public String getId() {
         return id;
     }
     @Override
@@ -66,7 +69,7 @@ public class Topic implements ITopic, SubscriberTopic {
         publisher.getBroker().sendMessageToSubs(id, message, name, getPublisherName(), subscribers);
     }
     @Override
-    public String toString() {
+    public String getString() {
         return "Topic id " + id + ": " + name + " (publisher: " + getPublisherName() + ")";
     }
 

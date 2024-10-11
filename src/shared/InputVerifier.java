@@ -1,4 +1,4 @@
-package Shared;
+package shared;
 
 public class InputVerifier {
     public final String PORT_ERROR_MESSAGE = "Port number must be between 0 and 65535 (inclusive).";
