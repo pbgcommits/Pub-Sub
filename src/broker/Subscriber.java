@@ -7,6 +7,7 @@ import shared.commands.SubscriberCommand;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 /**
  * Server-side class for subscribers. Subscribers are connected to a specific broker, and can subscribe to any topic
@@ -14,7 +15,7 @@ import java.util.*;
  * @author Patrick Barton Grace 1557198
  * */
 public class Subscriber extends UnicastRemoteObject implements ISubscriber {
-    private String message = null;
+    private Queue<String> messages;
     private Map<String, SubscriberTopic> currentTopics; /** Subscribers may subscribe to multiple topics (from the same or different publishers). */
     private final Broker broker;
     private String username; /** You may assume that subscriber names will be unique throughout the system.*/
@@ -22,6 +23,7 @@ public class Subscriber extends UnicastRemoteObject implements ISubscriber {
         this.username = username;
         this.broker = broker;
         currentTopics = new HashMap<>();
+        messages = new ConcurrentLinkedDeque<>();
     }
 
     /** List All Available Topics:
@@ -74,6 +76,7 @@ public class Subscriber extends UnicastRemoteObject implements ISubscriber {
                 return "Error collecting topic names.";
             }
         }
+        sb.setLength(sb.length() - 1);
         return sb.toString();
     }
     /** Unsubscribe from a Topic:
@@ -92,11 +95,11 @@ public class Subscriber extends UnicastRemoteObject implements ISubscriber {
     /** When a message is published to a subscribed topic,
      * it is immediately displayed on the subscribers console along with the topic ID, topic name, and publisher name.*/
     public void sendMessage(String message) {
-        this.message = message;
+        messages.add(message);
     }
     @Override
     public boolean hasMessage() {
-        return message != null;
+        return !messages.isEmpty();
     }
 
     /**
@@ -105,8 +108,7 @@ public class Subscriber extends UnicastRemoteObject implements ISubscriber {
      */
     @Override
     public String getMessage() {
-        String message = this.message;
-        this.message = null;
+        String message = messages.remove();
         return message;
     }
     /** A subscriber should receive a real-time notification message if they unsubscribe from a topic
