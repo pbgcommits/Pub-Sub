@@ -1,8 +1,8 @@
 package broker;
 
-import shared.IBroker;
-import shared.ITopic;
-import shared.Messenger;
+import shared.remote.IBroker;
+import shared.remote.ITopic;
+import shared.util.Messenger;
 import broker.connections.PublisherConnection;
 import broker.connections.SubscriberConnection;
 
@@ -13,6 +13,11 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 
+/**
+ * The broker deals with connecting publishers and subscribers. It tracks some amount of the total publishers and
+ * subscribers connected to the network, as well as all the other brokers in the network.
+ * @author Patrick Barton Grace 1557198
+ */
 public class Broker extends UnicastRemoteObject implements IBroker {
     private final Map<String, Topic> topics;
     private final Map<String, Publisher> publishers;

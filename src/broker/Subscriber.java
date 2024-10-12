@@ -1,24 +1,21 @@
 package broker;
 
-import shared.ISubscriber;
-import shared.Messenger;
-import shared.SubscriberCommand;
+import shared.remote.ISubscriber;
+import shared.util.Messenger;
+import shared.commands.SubscriberCommand;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 
 /**
- * 2.3 Subscriber
- * • Subscribers are clients that express interest in specific topics by subscribing to them through a broker.
- *   They receive real-time messages on those topics from their broker.
- * • A subscriber should receive a real-time notification message if they unsubscribe from a topic or if a topic they are subscribed to is deleted by the publisher.
- * • There can be up to 10 subscribers present in the system at the same time. */
+ * Server-side class for subscribers. Subscribers are connected to a specific broker, and can subscribe to any topic
+ * across the network.
+ * @author Patrick Barton Grace 1557198
+ * */
 public class Subscriber extends UnicastRemoteObject implements ISubscriber {
     private String message = null;
     private Map<String, SubscriberTopic> currentTopics; /** Subscribers may subscribe to multiple topics (from the same or different publishers). */
-    private String directoryIP; /** A subscriber can connect to only one broker at a time, specified via the command line at runtime. */
-    private int directoryPort;
     private final Broker broker;
     private String username; /** You may assume that subscriber names will be unique throughout the system.*/
     public Subscriber(Broker broker, String username) throws RemoteException {

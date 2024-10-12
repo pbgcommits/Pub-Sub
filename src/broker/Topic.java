@@ -1,12 +1,16 @@
 package broker;
 
-import shared.ITopic;
+import shared.remote.ITopic;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A topic tracks who is subscribed to it. It is published by a specific publisher.
+ * @author Patrick Barton Grace 1557198
+ */
 public class Topic extends UnicastRemoteObject implements ITopic, SubscriberTopic {
     final private Publisher publisher;
     final private List<String> subscribers;

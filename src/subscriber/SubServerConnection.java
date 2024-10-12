@@ -1,7 +1,7 @@
 package subscriber;
 
-import shared.Messenger;
-import shared.Timeouts;
+import shared.util.Messenger;
+import shared.util.Timeouts;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -11,10 +11,14 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.Date;
 
+/**
+ * Maintains a connection between a subscriber and the server.
+ * @author Patrick Barton Grace 1557198
+ */
 public class SubServerConnection extends Thread {
-    private Socket s;
-    public SubServerConnection(Socket s) {
-        this.s = s;
+    private final Socket server;
+    public SubServerConnection(Socket server) {
+        this.server = server;
     }
     @Override
     public void run() {
@@ -22,7 +26,7 @@ public class SubServerConnection extends Thread {
         try {
             // Thanks to https://stackoverflow.com/questions/29685705/permanent-and-persistent-socket-connection-in-java
             // for this
-            s.setSoTimeout(Timeouts.CLIENT_TIMEOUT);
+            server.setSoTimeout(Timeouts.CLIENT_TIMEOUT);
         }
         catch (SocketException e) {
             System.out.println("Connection failed; please try again later");
@@ -33,15 +37,14 @@ public class SubServerConnection extends Thread {
         try {
             while (true) {
                 try {
-                    DataOutputStream output = new DataOutputStream(s.getOutputStream());
+                    DataOutputStream output = new DataOutputStream(server.getOutputStream());
                     output.writeUTF(online);
                     output.flush();
-                    DataInputStream input = new DataInputStream(s.getInputStream());
+                    DataInputStream input = new DataInputStream(server.getInputStream());
                     Date date = new Date();
-                    System.out.println(date + " " + input.readUTF());
+                    System.out.println(date.toString().substring(0, 19) + " % " + input.readUTF());
                 }
                 catch (SocketTimeoutException e) {
-//                    System.out.println("timed out!!");
                 }
             }
         }
@@ -50,9 +53,9 @@ public class SubServerConnection extends Thread {
             return;
         }
         finally {
-            if (s != null) {
+            if (server != null) {
                 try {
-                    s.close();
+                    server.close();
                 } catch (IOException e) {
                     System.out.println("socket didn't close!!");
                     throw new RuntimeException(e);

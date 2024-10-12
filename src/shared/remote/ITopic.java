@@ -1,8 +1,12 @@
-package shared;
+package shared.remote;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
+/**
+ * Remote interface for topic objects.
+ * @author Patrick Barton Grace 1557198
+ */
 public interface ITopic extends Remote {
     void removeSubscriber(String username) throws RemoteException;
     void addSubscriber(String username) throws RemoteException;

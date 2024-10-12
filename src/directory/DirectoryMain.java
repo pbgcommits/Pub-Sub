@@ -1,13 +1,17 @@
 package directory;
 
-import shared.InputVerifier;
+import shared.util.InputVerifier;
 
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
+/**
+ * Load the directory into the RMI registry.
+ * The directory will dynamically connect brokers to publishers, subscribers, and each other.
+ * @author Patrick Barton Grace 1557198
+ */
 public class DirectoryMain {
-    private static Directory directory;
     private static final int numArgs = 2;
     private final static String USAGE_MESSAGE = "Usage: java -jar directory.jar " +
             "{rmi_ip} {rmi_port}";
@@ -15,6 +19,7 @@ public class DirectoryMain {
         if (args.length != numArgs) {
             System.out.println(USAGE_MESSAGE);
         }
+        // Make sure command line args are used correctly
         int rmiPort;
         try {
             InputVerifier verifier = new InputVerifier();
@@ -24,9 +29,8 @@ public class DirectoryMain {
             System.out.println(e.getMessage());
             return;
         }
-        // TODO: will need to pass both of these into every other jar also :))))
         String rmiIP = args[0];
-        // TODO: I think this will need to happen in the broker class now? I.e. each broker has its own factory
+        // Find the RMI registry
         Registry registry;
         try {
             registry = LocateRegistry.getRegistry(rmiIP, rmiPort);
@@ -35,7 +39,7 @@ public class DirectoryMain {
             System.out.println("Error creating RMI registry");
             return;
         }
-        // TODO: seems like it doesn't automatically terminate when the RMI registry shuts? random...
+        // Load the Directory object, which will handle connecting things with brokers
         try {
             Directory.init(registry);
         }
@@ -46,6 +50,5 @@ public class DirectoryMain {
             return;
         }
         System.out.println("Directory is now running");
-        directory = Directory.getInstance();
     }
 }

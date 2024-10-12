@@ -1,5 +1,9 @@
-package shared;
+package shared.commands;
 
+/**
+ * List of commands used by both subscribers and publishers.
+ * @author Patrick Barton Grace 1557198
+ */
 public enum GlobalCommand {
     HELP {
         public String[] getOptions() {

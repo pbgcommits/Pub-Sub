@@ -1,6 +1,6 @@
 package broker.connections;
 
-import shared.Messenger;
+import shared.util.Messenger;
 import broker.Broker;
 
 import java.io.DataInputStream;
@@ -8,6 +8,10 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.NoSuchElementException;
 
+/**
+ * Adds new subscribers and publishers to the network.
+ * @author Patrick Barton Grace 1557198
+ */
 public class BrokerConnection extends Thread {
     private Socket socket;
     private Broker broker;
@@ -21,14 +25,17 @@ public class BrokerConnection extends Thread {
             DataInputStream d = new DataInputStream(socket.getInputStream());
             String input = d.readUTF();
             Messenger m = new Messenger();
-            String connectionType = m.getConnectionType(input);
             String username = m.getUsername(input);
-            if (connectionType.equals(m.subscriber())) {
+            if (m.isSubscriber(input)) {
                 System.out.println("Adding subscriber: " + username);
                 broker.addSubscriber(socket, username);
-            } else if (connectionType.equals(m.publisher())) {
+            }
+            else if (m.isPublisher(input)) {
                 System.out.println("Adding publisher: " + username);
                 broker.addPublisher(socket, username);
+            }
+            else {
+                System.out.println("Invalid connection request: " + input);
             }
         }
         catch (NoSuchElementException | IOException e) {

@@ -1,6 +1,12 @@
 package subscriber;
 
-import shared.*;
+import shared.commands.GlobalCommand;
+import shared.commands.SubscriberCommand;
+import shared.remote.IBroker;
+import shared.remote.IDirectory;
+import shared.remote.ISubscriber;
+import shared.util.InputVerifier;
+import shared.util.Messenger;
 
 import javax.net.SocketFactory;
 import java.io.DataOutputStream;
@@ -13,6 +19,10 @@ import java.rmi.registry.Registry;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
+/**
+ * Initialises a subscriber client.
+ * @author Patrick Barton Grace 1557198
+ */
 public class SubscriberMain {
     final static int NUM_ARGS = 3;
     final static String USAGE_MESSAGE = "java -jar subscriber.jar " +
@@ -34,6 +44,7 @@ public class SubscriberMain {
         String username = args[0];
         String registryIP = args[1];
         Socket s;
+        // Create a subscriber object on the server
         try {
             Registry registry = LocateRegistry.getRegistry(registryIP, registryPort);
             IDirectory d = (IDirectory) registry.lookup(Messenger.DIRECTORY_RMI_NAME);
@@ -51,8 +62,7 @@ public class SubscriberMain {
                 System.out.println(e.getMessage());
                 return;
             }
-            // TODO: make this more robust (rather than just waiting an arbitrary amount of time)
-            // there is some delay in the new subscriber object actually being bound
+            // Give the server time to create the serverside subscriber
             Thread.sleep(1000);
             subscriber = (ISubscriber) registry.lookup(username);
         }
@@ -85,6 +95,12 @@ public class SubscriberMain {
             }
         }
     }
+    /**
+     * Read in user commands and attempt to execute them.
+     * @param subscriber The remote subscriber object which commands should be called upon.
+     * @param input The user's input.
+     * @return Whether the user wishes to continue running the program.
+     */
     private static boolean handleInput(ISubscriber subscriber, String[] input) {
 //        try {
 //            if (subscriber.hasMessage()) {
@@ -118,7 +134,6 @@ public class SubscriberMain {
             }
             else if (command.equals(SubscriberCommand.SUB.toString())) {
                 try {
-//                    int id = v.verifyTopicId(input, 1, 2, "Usage: sub {topic_id}");
                     if (input.length != 2) throw new IllegalArgumentException("Usage: " + SubscriberCommand.SUB.getUsage());
                     String id = input[1];
                     subscriber.subscribeToTopic(id);
@@ -134,7 +149,6 @@ public class SubscriberMain {
             }
             else if (command.equals(SubscriberCommand.UNSUB.toString())) {
                 try {
-//                    int id = v.verifyTopicId(input, 1, 2, "Usage: unsub {topic_id}");
                     if (input.length != 2) throw new IllegalArgumentException("Usage: " + SubscriberCommand.SUB.getUsage());
                     String id = input[1];
                     subscriber.unsubscribe(id);

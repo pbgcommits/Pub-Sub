@@ -1,7 +1,7 @@
 package broker.connections;
 
-import shared.Messenger;
-import shared.Timeouts;
+import shared.util.Messenger;
+import shared.util.Timeouts;
 import broker.Broker;
 import broker.Subscriber;
 
@@ -12,6 +12,11 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
+/**
+ * Maintains a connection with a subscriber client. If the subscriber disconnects, it will notify
+ * all relevant members of the network.
+ * @author Patrick Barton Grace 1557198
+ */
 public class SubscriberConnection extends Thread {
     private final Broker broker;
     private final Socket client;
@@ -31,12 +36,10 @@ public class SubscriberConnection extends Thread {
             System.out.println("Socket connection failed; subscriber disconnected");
             broker.removeSubscriber(subscriber);
             e.printStackTrace();
-//            System.exit(1);
             return;
         }
         try {
             while (true) {
-//                System.out.println("checking " + subscriber.getName() + " connection");
                 try {
                     DataInputStream input = new DataInputStream(client.getInputStream());
                     String in = input.readUTF();

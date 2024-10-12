@@ -1,7 +1,7 @@
 package publisher;
 
-import shared.Messenger;
-import shared.Timeouts;
+import shared.util.Messenger;
+import shared.util.Timeouts;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -10,17 +10,21 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
 
+/**
+ * Maintain a connection between a publisher and the server.
+ * @author Patrick Barton Grace 1557198
+ */
 public class PubServerConnection extends Thread {
-    private Socket s;
-    public PubServerConnection(Socket s) {
-        this.s = s;
+    private final Socket server;
+    public PubServerConnection(Socket server) {
+        this.server = server;
     }
 
     @Override
     public void run() {
         String online = new Messenger().writeOnlineMessage();
         try {
-            s.setSoTimeout(Timeouts.CLIENT_TIMEOUT);
+            server.setSoTimeout(Timeouts.CLIENT_TIMEOUT);
         }
         catch (SocketException e) {
             System.out.println("Connection failed; please try again later");
@@ -29,7 +33,7 @@ public class PubServerConnection extends Thread {
         try {
             while (true) {
                 try {
-                    DataOutputStream output = new DataOutputStream(s.getOutputStream());
+                    DataOutputStream output = new DataOutputStream(server.getOutputStream());
                     output.writeUTF(online);
                     output.flush();
                 }
@@ -42,9 +46,9 @@ public class PubServerConnection extends Thread {
             System.out.println("Server offline :(");
         }
         finally {
-            if (s != null) {
+            if (server != null) {
                 try {
-                    s.close();
+                    server.close();
                 } catch (IOException e) {
                     System.out.println("socket didn't close!!");
                     throw new RuntimeException(e);

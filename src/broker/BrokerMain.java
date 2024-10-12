@@ -1,8 +1,7 @@
 package broker;
 
-import broker.*;
-import shared.IDirectory;
-import shared.InputVerifier;
+import shared.remote.IDirectory;
+import shared.util.InputVerifier;
 import broker.connections.BrokerConnection;
 
 import javax.net.ServerSocketFactory;
@@ -15,6 +14,10 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
+/**
+ * Start up a new broker.
+ * @author Patrick Barton Grace 1557198
+ */
 public class BrokerMain {
     private final static String USAGE_MESSAGE = "java -jar broker.jar " +
             "{broker_ip} {broker_port} {registry_ip} {registry_port}";

@@ -1,6 +1,12 @@
 package publisher;
 
-import shared.*;
+import shared.commands.GlobalCommand;
+import shared.commands.PublisherCommand;
+import shared.remote.IBroker;
+import shared.remote.IDirectory;
+import shared.remote.IPublisher;
+import shared.util.InputVerifier;
+import shared.util.Messenger;
 
 import javax.naming.LimitExceededException;
 import javax.net.SocketFactory;
@@ -14,15 +20,19 @@ import java.rmi.registry.Registry;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
+/**
+ * Initialise a publisher client.
+ * @author Patrick Barton Grace 1557198
+ */
 public class PublisherMain {
-    final static int NUM_ARGS = 3;
-    final static String USAGE_MESSAGE = "java -jar publisher.jar " +
+    private final static int NUM_ARGS = 3;
+    private final static String USAGE_MESSAGE = "java -jar publisher.jar " +
             "username registry_ip registry_port";
-    final static String COMMAND_LIST = "Available commands:\n" +
+    private final static String COMMAND_LIST = "Available commands:\n" +
             PublisherCommand.getPublisherCommandUsage() + GlobalCommand.getGlobalCommandUsage();
-    final static InputVerifier v = new InputVerifier();
+    private final static InputVerifier v = new InputVerifier();
     public static void main(String[] args) {
-        int registryPort, directoryPort;
+        int registryPort;
         // Verify command line args
         try {
             registryPort = v.verifyPort(args, 2, NUM_ARGS, USAGE_MESSAGE);
@@ -35,6 +45,7 @@ public class PublisherMain {
         String username = args[0];
         String registryIP = args[1];
         Socket s;
+        // Create a remote Publisher object in the server
         try {
             Registry registry = LocateRegistry.getRegistry(registryIP, registryPort);
             IDirectory directory = (IDirectory) registry.lookup("Directory");
@@ -52,6 +63,7 @@ public class PublisherMain {
                 System.out.println(e.getMessage());
                 return;
             }
+            // Give the server time to create the serverside publisher
             Thread.sleep(1000);
             publisher = (IPublisher) registry.lookup(username);
         }
@@ -63,10 +75,12 @@ public class PublisherMain {
             System.out.println("Oh deary dear interrupted");
             return;
         }
+        // Maintain a connection with the server
+        new PubServerConnection(s).start();
+        // Check for user input
         System.out.println("Welcome, " + username);
         System.out.println(COMMAND_LIST);
         Scanner scanner = new Scanner(System.in);
-        new PubServerConnection(s).start();
         while (true) {
             String[] input = scanner.nextLine().split(" ");
             if (!handleInput(publisher, input)) {
@@ -75,6 +89,13 @@ public class PublisherMain {
             }
         }
     }
+
+    /**
+     * Read in user commands and attempt to execute them.
+     * @param publisher The remote publisher object which commands should be called upon.
+     * @param input The user's input.
+     * @return Whether the user wishes to continue running the program.
+     */
     private static boolean handleInput(IPublisher publisher, String[] input) {
         String command = input[0];
         for (String h : GlobalCommand.HELP.getOptions()) {
@@ -98,17 +119,16 @@ public class PublisherMain {
                     topicName.append(" ");
                     topicName.append(input[i]);
                 }
-                String id = publisher.createNewTopic(topicName.toString(), input[1]);
+                String id = input[1];
+                publisher.createNewTopic(topicName.toString(), id);
                 System.out.println("Created new topic: " + topicName.toString() + " with id " + id);
             }
-            catch (RemoteException | IllegalArgumentException | LimitExceededException e) {
+            catch (RemoteException | IllegalArgumentException e) {
                 System.out.println(e.getMessage());
             }
         }
         else if (command.equals(PublisherCommand.PUBLISH.toString())) {
             try {
-                // TODO : read in space separated message D:
-//                int id = v.verifyTopicId(input, 1, -1, GlobalCommand.PublisherCommand.PUBLISH.getUsage());
                 if (input.length < 3) throw new IllegalArgumentException("Usage: " + PublisherCommand.PUBLISH.getUsage());
                 String id = input[1];
                 StringBuilder message = new StringBuilder();
@@ -126,10 +146,9 @@ public class PublisherMain {
         }
         else if (command.equals(PublisherCommand.SHOW.toString())) {
             try {
-//                int id = v.verifyTopicId(input, 1, 2, GlobalCommand.PublisherCommand.SHOW.getUsage());
                 if (input.length != 2) throw new IllegalArgumentException("Usage: " + PublisherCommand.SHOW.getUsage());
                 String id = input[1];
-                System.out.println(publisher.show(id));
+                System.out.println("Subscribers to id " + id + ": " + publisher.show(id));
             }
             catch (RemoteException | IllegalArgumentException | NoSuchElementException e) {
                 System.out.println(e.getMessage());
@@ -137,7 +156,6 @@ public class PublisherMain {
         }
         else if (command.equals(PublisherCommand.DELETE.toString())) {
             try {
-//                int id = v.verifyTopicId(input, 1, 2, GlobalCommand.PublisherCommand.DELETE.getUsage());
                 if (input.length != 2) throw new IllegalArgumentException("Usage: " + PublisherCommand.DELETE.getUsage());
                 String id = input[1];
                 publisher.delete(id);
