@@ -7,6 +7,7 @@ import shared.util.Messenger;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 /**
@@ -15,14 +16,14 @@ import java.util.concurrent.ConcurrentLinkedDeque;
  * @author Patrick Barton Grace 1557198
  * */
 public class Subscriber extends UnicastRemoteObject implements ISubscriber {
-    private final Queue<String> messages;
-    private final Map<String, SubscriberTopic> currentTopics; /** Subscribers may subscribe to multiple topics (from the same or different publishers). */
+    private final ConcurrentLinkedDeque<String> messages;
+    private final ConcurrentHashMap<String, SubscriberTopic> currentTopics; /** Subscribers may subscribe to multiple topics (from the same or different publishers). */
     private final Broker broker;
     private final String username; /** You may assume that subscriber names will be unique throughout the system.*/
     public Subscriber(Broker broker, String username) throws RemoteException {
         this.username = username;
         this.broker = broker;
-        currentTopics = new HashMap<>();
+        currentTopics = new ConcurrentHashMap<>();
         messages = new ConcurrentLinkedDeque<>();
     }
 

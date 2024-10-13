@@ -13,7 +13,7 @@ import java.util.NoSuchElementException;
  * A topic tracks who is subscribed to it. It is published by a specific publisher.
  * @author Patrick Barton Grace 1557198
  */
-public class Topic extends UnicastRemoteObject implements ITopic, SubscriberTopic {
+public class Topic extends UnicastRemoteObject implements ITopic {
     final private Publisher publisher;
     final private List<String> subscribers;
     final private String name;

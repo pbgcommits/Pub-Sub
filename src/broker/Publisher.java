@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Patrick Barton Grace 1557198
  */
 public class Publisher extends UnicastRemoteObject implements IPublisher {
-    final private Map<String, Topic> topics;
+    final private ConcurrentHashMap<String, Topic> topics;
     final private String name;
     final private Broker broker;
     public Map<String, Topic> getTopics() {
@@ -62,6 +62,7 @@ public class Publisher extends UnicastRemoteObject implements IPublisher {
     @Override
     public void delete (String id) throws NoSuchElementException {
         verifyTopic(id);
+        broker.removeTopic(id);
         Topic topic = topics.get(id);
         ListIterator<String> iter = topic.getSubscriberUsernames().listIterator();
         while (iter.hasNext()) {
@@ -75,7 +76,6 @@ public class Publisher extends UnicastRemoteObject implements IPublisher {
             }
         }
         topics.remove(id);
-        broker.removeTopic(id);
         System.out.println("Deleted topic " + id);
     }
 

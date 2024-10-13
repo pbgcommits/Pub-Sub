@@ -1,5 +1,7 @@
 package broker.remote;
 
+import shared.remote.IBroker;
+
 import java.net.Socket;
 import java.rmi.AlreadyBoundException;
 import java.rmi.Remote;
@@ -11,7 +13,7 @@ import java.util.List;
  * the shared.remote directory.
  * @author Patrick Barton Grace 1557198
  */
-public interface NetworkBroker extends Remote{
+public interface NetworkBroker extends Remote, IBroker {
 //    String getId() throws RemoteException;
 //    int getPort() throws RemoteException;
 //    String getIp() throws RemoteException;

@@ -7,13 +7,13 @@ import java.rmi.RemoteException;
  * Remote interface for topic objects.
  * @author Patrick Barton Grace 1557198
  */
-public interface ITopic extends Remote {
+public interface ITopic extends Remote, SubscriberTopic {
     void removeSubscriber(String username) throws RemoteException;
     void addSubscriber(String username) throws RemoteException;
-    String getPublisherName() throws RemoteException;
-    String getName() throws RemoteException;
-    String getId() throws RemoteException;
     int getSubscriberCount() throws RemoteException;
     void publishMessage(String message) throws RemoteException;
-    String getString() throws RemoteException;
+//    String getPublisherName() throws RemoteException;
+//    String getName() throws RemoteException;
+//    String getId() throws RemoteException;
+//    String getString() throws RemoteException;
 }

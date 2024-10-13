@@ -14,18 +14,19 @@ import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The broker deals with connecting publishers and subscribers. It tracks some amount of the total publishers and
  * subscribers connected to the network, as well as all the other brokers in the network.
  * @author Patrick Barton Grace 1557198
  */
-public class Broker extends UnicastRemoteObject implements NetworkBroker, IBroker {
-    private final Map<String, Topic> topics;
-    private final Map<String, Publisher> publishers;
-    private final Map<String, Subscriber> subscribers;
-    private final Map<Subscriber, SubscriberConnection> subscriberConnections;
-    private final Map<Publisher, PublisherConnection> publisherConnections;
+public class Broker extends UnicastRemoteObject implements NetworkBroker{
+    private final ConcurrentHashMap<String, Topic> topics;
+    private final ConcurrentHashMap<String, Publisher> publishers;
+    private final ConcurrentHashMap<String, Subscriber> subscribers;
+    private final ConcurrentHashMap<Subscriber, SubscriberConnection> subscriberConnections;
+    private final ConcurrentHashMap<Publisher, PublisherConnection> publisherConnections;
     private final List<NetworkBroker> brokers;
     // Only tracks publisher and subscriber connections (not brokers)
     private int numConnections;
@@ -49,13 +50,13 @@ public class Broker extends UnicastRemoteObject implements NetworkBroker, IBroke
         this.ip = ip;
         this.port = port;
         numConnections = 0;
-        topics = new HashMap<>();
-        publishers = new HashMap<>();
-        subscribers = new HashMap<>();
+        topics = new ConcurrentHashMap<>();
+        publishers = new ConcurrentHashMap<>();
+        subscribers = new ConcurrentHashMap<>();
         brokers = new ArrayList<>();
         this.registry = registry;
-        subscriberConnections = new HashMap<>();
-        publisherConnections = new HashMap<>();
+        subscriberConnections = new ConcurrentHashMap<>();
+        publisherConnections = new ConcurrentHashMap<>();
     }
 
     /**

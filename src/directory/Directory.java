@@ -59,7 +59,7 @@ public class Directory extends UnicastRemoteObject implements IDirectory {
      * @throws RemoteException
      */
     @Override
-    public void addBroker(String id) throws RemoteException {
+    public synchronized void addBroker(String id) throws RemoteException {
         IBroker b;
         // The broker should have added itself to the RMI registry
         try {
@@ -97,7 +97,7 @@ public class Directory extends UnicastRemoteObject implements IDirectory {
      * @throws RemoteException If there is an issue connecting to the RMI registry.
      */
     @Override
-    public IBroker getMostAvailableBroker() throws NoSuchElementException, RemoteException {
+    public synchronized IBroker getMostAvailableBroker() throws NoSuchElementException, RemoteException {
         System.out.println("Somebody has requested an available broker");
         if (brokers.isEmpty()) {
             throw new NoSuchElementException("There are currently no brokers connected to the network!");
