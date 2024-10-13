@@ -1,11 +1,13 @@
 package broker;
 
-import shared.remote.ITopic;
+import broker.remote.SubscriberTopic;
+import broker.remote.ITopic;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
  * A topic tracks who is subscribed to it. It is published by a specific publisher.
@@ -14,10 +16,12 @@ import java.util.List;
 public class Topic extends UnicastRemoteObject implements ITopic, SubscriberTopic {
     final private Publisher publisher;
     final private List<String> subscribers;
+    final private String name;
+    private int subscriberCount;
+    final private String id;
     public List<String> getSubscriberUsernames() {
         return subscribers;
     }
-    final private String name;
     public Topic(String name, String id, Publisher publisher) throws RemoteException {
         subscriberCount = 0;
         subscribers = new ArrayList<>();
@@ -26,14 +30,12 @@ public class Topic extends UnicastRemoteObject implements ITopic, SubscriberTopi
         this.publisher = publisher;
         System.out.println("New topic created: " + getString());
     }
-    private int subscriberCount;
-    final private String id;
 
     /**
      * Notifies a subscriber that the topic is being deleted from the network.
      * @param username The subscriber to be notified.
      */
-    public void removeSelfFromSubscriber(String username) {
+    public void removeSelfFromSubscriber(String username) throws NoSuchElementException {
 //        subscriberCount--;
         publisher.getBroker().deleteTopicFromSubscriber(id, username);
     }

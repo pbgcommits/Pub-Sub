@@ -17,11 +17,11 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class Publisher extends UnicastRemoteObject implements IPublisher {
     final private Map<String, Topic> topics;
+    final private String name;
+    final private Broker broker;
     public Map<String, Topic> getTopics() {
         return topics;
     }
-    final private String name;
-    final private Broker broker;
     public String getName() {
         return name;
     }
@@ -65,8 +65,14 @@ public class Publisher extends UnicastRemoteObject implements IPublisher {
         Topic topic = topics.get(id);
         ListIterator<String> iter = topic.getSubscriberUsernames().listIterator();
         while (iter.hasNext()) {
-            topic.removeSelfFromSubscriber(iter.next());
-            iter.remove();
+            try {
+                topic.removeSelfFromSubscriber(iter.next());
+                iter.remove();
+            }
+            catch (NoSuchElementException e) {
+                // If we try to remove a subscriber from a topic it was already unsubscribed from
+                System.out.println("Invalid sub-topic removal");
+            }
         }
         topics.remove(id);
         broker.removeTopic(id);

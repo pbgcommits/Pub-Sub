@@ -1,4 +1,4 @@
-package broker;
+package broker.remote;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;

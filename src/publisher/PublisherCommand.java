@@ -1,72 +1,72 @@
-package shared.commands;
+package publisher;
 
 /**
- * List of commands used by subscribers.
+ * List of commands used by publishers.
  * @author Patrick Barton Grace 1557198
  */
-public enum SubscriberCommand {
-    LIST {
+public enum PublisherCommand {
+    CREATE {
         @Override
         public String toString() {
-            return "list";
+            return "create";
         }
 
         @Override
         public String getUsage() {
-            return "list";
+            return "create {topic_id} {topic_name}";
         }
 
         @Override
         public String getInfo() {
-            return "show all available topics to be subscribed to";
+            return "create a new topic";
         }
     },
-    SUB {
+    PUBLISH {
         @Override
         public String toString() {
-            return "sub";
+            return "publish";
         }
 
         @Override
         public String getUsage() {
-            return "sub {topic_id}";
+            return "publish {topic_id} {message}";
         }
 
         @Override
         public String getInfo() {
-            return "subscribe to the topic with the given id";
+            return "publish a message to the given topic";
         }
     },
-    CURRENT {
+    SHOW {
         @Override
         public String toString() {
-            return "current";
+            return "show";
         }
 
         @Override
         public String getUsage() {
-            return "current";
+            return "show {topic_id}";
         }
 
         @Override
         public String getInfo() {
-            return "show all topics to which you are currently subscribed";
+            return "show the number of subscribers to the given topic";
         }
     },
-    UNSUB {
+    DELETE {
         @Override
         public String toString() {
-            return "unsub";
+            return "delete";
         }
 
         @Override
         public String getUsage() {
-            return "unsub {topic_id}";
+            return "delete {topic_id}";
         }
 
         @Override
         public String getInfo() {
-            return "unsubscribe from the given topic";
+            return "delete the given topic from the network";
         }
     };
 
@@ -76,10 +76,10 @@ public enum SubscriberCommand {
 
     public abstract String getInfo();
 
-    public static String getSubscriberCommandUsage() {
+    public static String getPublisherCommandUsage() {
         StringBuilder sb = new StringBuilder();
-        for (SubscriberCommand s : SubscriberCommand.values()) {
-            sb.append(s.getUsage() + ": " + s.getInfo() + "\n");
+        for (PublisherCommand p : PublisherCommand.values()) {
+            sb.append(p.getUsage() + ": " + p.getInfo() + "\n");
         }
         return sb.toString();
     }

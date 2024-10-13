@@ -34,7 +34,7 @@ public interface ISubscriber extends Remote {
      * @throws IllegalArgumentException If the subscriber is not subscribed to this topic
      * (or if the topic does not exist).
      */
-    void unsubscribe(String id) throws RemoteException, IllegalArgumentException;
+    void unsubscribe(String id) throws RemoteException, IllegalArgumentException, NoSuchElementException;
 
     /**
      * True if the subscriber has been sent a message from one of its topics.

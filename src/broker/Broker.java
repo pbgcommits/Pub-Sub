@@ -1,8 +1,10 @@
 package broker;
 
-import shared.remote.IBroker;
-import shared.remote.ITopic;
+import broker.remote.SubscriberTopic;
+import broker.remote.NetworkBroker;
+import broker.remote.ITopic;
 import shared.util.Messenger;
+import shared.remote.IBroker;
 import broker.connections.PublisherConnection;
 import broker.connections.SubscriberConnection;
 
@@ -18,17 +20,19 @@ import java.util.*;
  * subscribers connected to the network, as well as all the other brokers in the network.
  * @author Patrick Barton Grace 1557198
  */
-public class Broker extends UnicastRemoteObject implements IBroker {
+public class Broker extends UnicastRemoteObject implements NetworkBroker, IBroker {
     private final Map<String, Topic> topics;
     private final Map<String, Publisher> publishers;
     private final Map<String, Subscriber> subscribers;
     private final Map<Subscriber, SubscriberConnection> subscriberConnections;
     private final Map<Publisher, PublisherConnection> publisherConnections;
-    private final List<IBroker> brokers;
+    private final List<NetworkBroker> brokers;
+    // Only tracks publisher and subscriber connections (not brokers)
     private int numConnections;
     private final int port;
     private final String ip;
     private final String id;
+    private final Registry registry;
     @Override
     public String getId() {return id;}
 
@@ -40,7 +44,6 @@ public class Broker extends UnicastRemoteObject implements IBroker {
     public String getIp() {
         return ip;
     }
-    Registry registry;
     public Broker(String ip, int port, Registry registry) throws RemoteException {
         this.id = "Broker" + port;
         this.ip = ip;
@@ -94,7 +97,7 @@ public class Broker extends UnicastRemoteObject implements IBroker {
         for (String sub : subs) {
             if (!passMessage(topicID, message, topicName, publisherName, sub)) {
                 try {
-                    for (IBroker b : brokers) {
+                    for (NetworkBroker b : brokers) {
                         if (b.passMessage(topicID, message, topicName, publisherName, sub)) {
                             break;
                         }
@@ -123,15 +126,14 @@ public class Broker extends UnicastRemoteObject implements IBroker {
     public void addPublisher(Socket client, String username) throws RemoteException {
 //        System.out.println("Adding publisher: " + username);
         Publisher p = new Publisher(username, this);
-        // this currently uses REBIND - meaning if a publisher with the same name previously existed,
-        // it's now been deleted
         try {
             registry.bind(username, p);
             System.out.println("Bound " + username + " for the first time");
         }
         catch (AlreadyBoundException e) {
-            System.out.println(username + " already exists: rebinding");
-            registry.rebind(username, p);
+            // Currently, if a publisher already exists with this username, its connection information will be lost
+            System.out.println(username + " already exists");
+//            registry.rebind(username, p);
         }
         publishers.put(username, p);
         PublisherConnection connection = new PublisherConnection(client, this, p);
@@ -151,7 +153,7 @@ public class Broker extends UnicastRemoteObject implements IBroker {
             p.delete(id);
 //            topics.remove(id);
         }
-        System.out.println(p.getName() + " has disconnected.");
+//        System.out.println(p.getName() + " has disconnected.");
         numConnections--;
     }
 
@@ -164,15 +166,16 @@ public class Broker extends UnicastRemoteObject implements IBroker {
     @Override
     public void addSubscriber(Socket client, String username) throws RemoteException {
         Subscriber s = new Subscriber(this, username);
-        // this currently uses REBIND - meaning if a subscriber with the same name previously existed,
-        // it's now been deleted
         try {
             registry.bind(username, s);
             System.out.println("Bound " + username + " for the first time");
         }
         catch (AlreadyBoundException e) {
-            System.out.println(username + " already existed: rebinding");
-            registry.rebind(username, s);
+            // Currently, if a publisher already exists with this username, its connection information will be lost:
+            // Subsequently, only the most recently added subscriber with this username will be notified of
+            // events by the server
+            System.out.println(username + " already existed");
+//            registry.rebind(username, s);
         }
         subscribers.put(username, s);
         SubscriberConnection connection = new SubscriberConnection(client, this, s);
@@ -201,12 +204,13 @@ public class Broker extends UnicastRemoteObject implements IBroker {
      */
     @Override
     public void addBroker(IBroker b) {
-        if (brokers.contains(b) || b.equals(this)) return; // do I need this?
-        brokers.add(b);
+        NetworkBroker nb = (NetworkBroker) b;
+        if (brokers.contains(nb) || b.equals(this)) return; // do I need this?
+        brokers.add(nb);
         System.out.println("added a new broker");
-        numConnections++;
+//        numConnections++;
     }
-    public void removeBroker(IBroker b) {
+    public void removeBroker(NetworkBroker b) {
         brokers.remove(b);
         System.out.println("A broker has disconnected.");
         numConnections--;
@@ -222,8 +226,9 @@ public class Broker extends UnicastRemoteObject implements IBroker {
      */
     @Override
     public boolean attemptDeleteTopicFromSubscriber(String topicID, String username) throws NoSuchElementException {
-        System.out.println("DELETING TOPIC FROM SUBSCRIBER");
+//        System.out.println("DELETING TOPIC FROM SUBSCRIBER");
         if (subscribers.containsKey(username)) {
+            System.out.println("Deleting topic from subscriber " + username);
             subscribers.get(username).deleteTopic(topicID);
             return true;
         }
@@ -238,13 +243,13 @@ public class Broker extends UnicastRemoteObject implements IBroker {
      *                                not present in the network.
      */
     public void deleteTopicFromSubscriber(String topicID, String username) throws NoSuchElementException {
-        System.out.println("TOPIC IS GETTING DELETED D:");
+//        System.out.println("TOPIC IS GETTING DELETED D:");
         boolean success = attemptDeleteTopicFromSubscriber(topicID, username);
         if (success) {
             return;
         }
         try {
-            for (IBroker b : brokers) {
+            for (NetworkBroker b : brokers) {
                 if (b.attemptDeleteTopicFromSubscriber(topicID, username)) {
                     return;
                 }
@@ -265,7 +270,7 @@ public class Broker extends UnicastRemoteObject implements IBroker {
      * @throws NoSuchElementException If the subscriber wasn't already subscribed to this topic.
      */
     @Override
-    public boolean attemptDeleteSubscriberFromTopic(String topicID, String username) throws NoSuchElementException {
+    public boolean attemptDeleteSubscriberFromTopic(String topicID, String username) {
         if (topics.containsKey(topicID)) {
             topics.get(topicID).removeSubscriber(username);
             return true;
@@ -286,7 +291,7 @@ public class Broker extends UnicastRemoteObject implements IBroker {
             return;
         }
         try {
-            for (IBroker b : brokers) {
+            for (NetworkBroker b : brokers) {
                 if (b.attemptDeleteSubscriberFromTopic(topicID, username)) {
                     return;
                 }
@@ -301,22 +306,42 @@ public class Broker extends UnicastRemoteObject implements IBroker {
 
     @Override
     public SubscriberTopic attemptAddSubscriberToTopic(String topicID, String username) {
-        for (Publisher p : publishers.values()) {
-            if (p.getTopics().containsKey(topicID)) {
-                ITopic t = p.getTopics().get(topicID);
-                try {
-                    t.addSubscriber(username);
-                }
-                catch (RemoteException e) {
-                    System.out.println("Failed to subscribe " + username + " to topic");
-                    return null;
-                }
-                SubscriberTopic st = p.getTopics().get(topicID);
-                return st;
-            }
+        if (!topics.containsKey(topicID)) {
+            return null;
         }
-        return null;
+        ITopic t = topics.get(topicID);
+        try {
+            t.addSubscriber(username);
+        }
+        catch (RemoteException e) {
+            System.out.println("Failed to subscribe " + username + " to topic");
+            return null;
+        }
+        return topics.get(topicID);
+//        for (Publisher p : publishers.values()) {
+//            if (p.getTopics().containsKey(topicID)) {
+//                ITopic t = p.getTopics().get(topicID);
+//                try {
+//                    t.addSubscriber(username);
+//                }
+//                catch (RemoteException e) {
+//                    System.out.println("Failed to subscribe " + username + " to topic");
+//                    return null;
+//                }
+//                SubscriberTopic st = p.getTopics().get(topicID);
+//                return st;
+//            }
+//        }
+//        return null;
     }
+
+    /**
+     * Subscribe a given subscriber to a new topic.
+     * @param topicID The topic's id.
+     * @param username The subscriber's username.
+     * @return A reference to the topic the subscriber has subscribed to.
+     * @throws NoSuchElementException If there is no topic with that id.
+     */
     public SubscriberTopic addSubscriberToTopic(String topicID, String username) throws NoSuchElementException {
         SubscriberTopic t = attemptAddSubscriberToTopic(topicID, username);
         if (t != null) {
@@ -324,7 +349,7 @@ public class Broker extends UnicastRemoteObject implements IBroker {
         }
         else  {
             try {
-                for (IBroker b : brokers) {
+                for (NetworkBroker b : brokers) {
                     t = b.attemptAddSubscriberToTopic(topicID, username);
                     if (t != null) return t;
                 }
@@ -342,12 +367,16 @@ public class Broker extends UnicastRemoteObject implements IBroker {
         return new ArrayList<>(topics.values());
     }
 
+    /**
+     * Create a list of all available topics on the network.
+     * @return The list of all available topics, returned as a formatted string.
+     */
     public String getAllTopics() {
         StringBuilder sb = new StringBuilder();
         for (Topic t : topics.values()) {
             sb.append(t.getString() + "\n");
         }
-        for (IBroker b : brokers) {
+        for (NetworkBroker b : brokers) {
             try {
                 for (ITopic t : b.getTopics()) {
                     sb.append(t.getString() + "\n");

@@ -1,8 +1,8 @@
 package broker;
 
+import broker.remote.SubscriberTopic;
 import shared.remote.ISubscriber;
 import shared.util.Messenger;
-import shared.commands.SubscriberCommand;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
@@ -15,10 +15,10 @@ import java.util.concurrent.ConcurrentLinkedDeque;
  * @author Patrick Barton Grace 1557198
  * */
 public class Subscriber extends UnicastRemoteObject implements ISubscriber {
-    private Queue<String> messages;
-    private Map<String, SubscriberTopic> currentTopics; /** Subscribers may subscribe to multiple topics (from the same or different publishers). */
+    private final Queue<String> messages;
+    private final Map<String, SubscriberTopic> currentTopics; /** Subscribers may subscribe to multiple topics (from the same or different publishers). */
     private final Broker broker;
-    private String username; /** You may assume that subscriber names will be unique throughout the system.*/
+    private final String username; /** You may assume that subscriber names will be unique throughout the system.*/
     public Subscriber(Broker broker, String username) throws RemoteException {
         this.username = username;
         this.broker = broker;
@@ -45,7 +45,6 @@ public class Subscriber extends UnicastRemoteObject implements ISubscriber {
         }
         try {
             SubscriberTopic t = broker.addSubscriberToTopic(id, username);
-//        TODO need to also store topic name and publisher :)))
             currentTopics.put(id, t);
         }
         catch (NoSuchElementException e) {
@@ -65,7 +64,7 @@ public class Subscriber extends UnicastRemoteObject implements ISubscriber {
     public String showCurrentSubscriptions() {
         System.out.println(getName() + "is requesting their current subscriptions.");
         if (currentTopics.isEmpty()) {
-            return "Currently not subscribed to any topics. Subscribe using: " + SubscriberCommand.SUB.getUsage();
+            return "";
         }
         StringBuilder sb = new StringBuilder("Current subscriptions:\n");
         for (SubscriberTopic t : currentTopics.values()) {
@@ -83,7 +82,7 @@ public class Subscriber extends UnicastRemoteObject implements ISubscriber {
      * Stops receiving messages from a topic. The broker sends a notification message confirming the unsubscription.
      * */
     @Override
-    public void unsubscribe(String id) throws IllegalArgumentException {
+    public void unsubscribe(String id) throws IllegalArgumentException, NoSuchElementException {
         if (currentTopics.get(id) == null) {
             throw new IllegalArgumentException("You are not subscribed to this topic!");
         }
@@ -104,7 +103,6 @@ public class Subscriber extends UnicastRemoteObject implements ISubscriber {
 
     /**
      * Gets the current message waiting to be sent to subscriber, then removes it from the queue.
-     * @return
      */
     @Override
     public String getMessage() {

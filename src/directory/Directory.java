@@ -40,6 +40,15 @@ public class Directory extends UnicastRemoteObject implements IDirectory {
             registry.bind(Messenger.DIRECTORY_RMI_NAME, this);
         } catch (AlreadyBoundException e) {
             System.out.println("Resetting directory");
+            // reset directory
+            for (String s : registry.list()) {
+                try {
+                    registry.unbind(s);
+                }
+                catch (NotBoundException ex) {
+                    System.out.println("unbinding issue");
+                }
+            }
             registry.rebind(Messenger.DIRECTORY_RMI_NAME, this);
         }
     }
@@ -94,16 +103,22 @@ public class Directory extends UnicastRemoteObject implements IDirectory {
             throw new NoSuchElementException("There are currently no brokers connected to the network!");
         }
         IBroker b = brokers.get(0);
+        int minConnections = Integer.MAX_VALUE;
         try {
+            minConnections = b.getNumConnections();
             for (int i = 1; i < brokers.size(); i++) {
-                if (brokers.get(i).getNumConnections() < b.getNumConnections()) b = brokers.get(i);
+                int newConnections = brokers.get(i).getNumConnections();
+                if (newConnections < minConnections) {
+                    b = brokers.get(i);
+                    minConnections = newConnections;
+                }
             }
         }
         catch (RemoteException e) {
             System.out.println("COULDN'T CONNECT TO A BROKER");
 //            e.printStackTrace();
         }
-        System.out.println("Most available broker is " + b.getId() + " with " + b.getNumConnections() + " connections.");
+        System.out.println("Most available broker is " + b.getId() + " with " + minConnections + " connections.");
         return b;
     }
 

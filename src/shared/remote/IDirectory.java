@@ -1,5 +1,7 @@
 package shared.remote;
 
+import shared.remote.IBroker;
+
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.NoSuchElementException;

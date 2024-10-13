@@ -1,14 +1,12 @@
 package publisher;
 
 import shared.commands.GlobalCommand;
-import shared.commands.PublisherCommand;
 import shared.remote.IBroker;
 import shared.remote.IDirectory;
 import shared.remote.IPublisher;
 import shared.util.InputVerifier;
 import shared.util.Messenger;
 
-import javax.naming.LimitExceededException;
 import javax.net.SocketFactory;
 import java.io.DataOutputStream;
 import java.io.IOException;

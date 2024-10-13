@@ -1,7 +1,6 @@
 package subscriber;
 
 import shared.commands.GlobalCommand;
-import shared.commands.SubscriberCommand;
 import shared.remote.IBroker;
 import shared.remote.IDirectory;
 import shared.remote.ISubscriber;
@@ -145,7 +144,13 @@ public class SubscriberMain {
                 }
             }
             else if (command.equals(SubscriberCommand.CURRENT.toString())) {
-                System.out.println(subscriber.showCurrentSubscriptions());
+                String curSubs = subscriber.showCurrentSubscriptions();
+                if (curSubs.equals("")) {
+                    System.out.println("Currently not subscribed to any topics. Subscribe using: " + SubscriberCommand.SUB.getUsage());
+                }
+                else {
+                    System.out.println(curSubs);
+                }
             }
             else if (command.equals(SubscriberCommand.UNSUB.toString())) {
                 try {
@@ -155,7 +160,7 @@ public class SubscriberMain {
                     // TODO - would be nice to show the topic name here!
                     System.out.println("Unsubscribed from " + id);
                 }
-                catch (IllegalArgumentException e) {
+                catch (IllegalArgumentException | NoSuchElementException e) {
                     System.out.println(e.getMessage());
                 }
             }

@@ -22,9 +22,8 @@ public class BrokerMain {
     private final static String USAGE_MESSAGE = "java -jar broker.jar " +
             "{broker_ip} {broker_port} {registry_ip} {registry_port}";
     private final static int NUM_ARGS = 4;
-    private final static InputVerifier v = new InputVerifier();
-    private static Broker broker;
     public static void main(String[] args) {
+        final InputVerifier v = new InputVerifier();
         int brokerPort;
         int rmiPort;
         try {
@@ -37,6 +36,7 @@ public class BrokerMain {
         }
         String brokerIP = args[0];
         String rmiIP = args[2];
+        Broker broker;
         try {
             Registry directoryRegistry = LocateRegistry.getRegistry(rmiIP, rmiPort);
             IDirectory directory = (IDirectory) directoryRegistry.lookup("Directory");
@@ -46,7 +46,10 @@ public class BrokerMain {
                 directoryRegistry.bind(broker.getId(), broker);
             }
             catch (AlreadyBoundException e) {
-                directoryRegistry.rebind(broker.getId(), broker);
+                System.out.println("A broker is already using this port");
+                System.exit(1);
+                return;
+//                directoryRegistry.rebind(broker.getId(), broker);
             }
 //            System.out.println('2');
             directory.addBroker(broker.getId());
@@ -70,6 +73,7 @@ public class BrokerMain {
         }
         catch (IOException e) {
             System.out.println("Socket exception");
+            System.exit(1);
         }
     }
 }
