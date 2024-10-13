@@ -76,7 +76,7 @@ public class Directory extends UnicastRemoteObject implements IDirectory {
             try {
                 // Order is important; otherwise b may add a disconnected broker (b2)
                 b2.addBroker(b);
-                System.out.println(b2.getId());
+//                System.out.println(b2.getId());
                 b.addBroker(b2);
             }
             catch (RemoteException e) {

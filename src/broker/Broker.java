@@ -94,7 +94,7 @@ public class Broker extends UnicastRemoteObject implements NetworkBroker{
             System.out.println("Sending to non-existent topic");
             throw new NoSuchElementException("This topic does not exist!");
         }
-        System.out.println("Sending message " + message + " to " + topicID);
+        System.out.println("Sending message " + message + " to topic " + topicID);
         for (String sub : subs) {
             if (!passMessage(topicID, message, topicName, publisherName, sub)) {
                 try {
@@ -129,7 +129,8 @@ public class Broker extends UnicastRemoteObject implements NetworkBroker{
         Publisher p = new Publisher(username, this);
         try {
             registry.bind(username, p);
-            System.out.println("Bound " + username + " for the first time");
+            System.out.println("Added new publisher: " + username);
+//            System.out.println("Bound " + username + " for the first time");
         }
         catch (AlreadyBoundException e) {
             // Currently, if a publisher already exists with this username, its connection information will be lost
@@ -169,7 +170,8 @@ public class Broker extends UnicastRemoteObject implements NetworkBroker{
         Subscriber s = new Subscriber(this, username);
         try {
             registry.bind(username, s);
-            System.out.println("Bound " + username + " for the first time");
+            System.out.println("Added new subscriber: " + username);
+//            System.out.println("Bound " + username + " for the first time");
         }
         catch (AlreadyBoundException e) {
             // Currently, if a publisher already exists with this username, its connection information will be lost:
@@ -185,14 +187,31 @@ public class Broker extends UnicastRemoteObject implements NetworkBroker{
         numConnections++;
     }
 
+    @Override
+    public void attemptRemoveSubscriber(String username, Set<String> userTopics) {
+        for (String id : userTopics) {
+            if (this.topics.get(id) != null) {
+                this.topics.get(id).removeSubscriber(username);
+            }
+        }
+    }
+
     /**
      * Removes a subscriber from the network.
      * Should only be called when a subscriber disconnects.
      * @param s The subscriber to be removed.
      */
     public void removeSubscriber(Subscriber s) {
-        for (String id : s.getTopics()) {
-            topics.get(id).removeSubscriber(s.getName());
+        String username = s.getName();
+        Set<String> topics = s.getTopics();
+        attemptRemoveSubscriber(username, topics);
+        for (NetworkBroker b : brokers) {
+            try {
+                b.attemptRemoveSubscriber(username, topics);
+            }
+            catch (RemoteException e) {
+                System.out.println("Failed to connect to a broker while deleting subscriber");
+            }
         }
         subscribers.remove(s);
         System.out.println(s.getName() + " has disconnected.");
@@ -208,7 +227,7 @@ public class Broker extends UnicastRemoteObject implements NetworkBroker{
         NetworkBroker nb = (NetworkBroker) b;
         if (brokers.contains(nb) || b.equals(this)) return; // do I need this?
         brokers.add(nb);
-        System.out.println("added a new broker");
+//        System.out.println("added a new broker");
 //        numConnections++;
     }
     public void removeBroker(NetworkBroker b) {

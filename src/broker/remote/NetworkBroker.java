@@ -1,5 +1,6 @@
 package broker.remote;
 
+import broker.Subscriber;
 import shared.remote.IBroker;
 
 import java.net.Socket;
@@ -7,6 +8,7 @@ import java.rmi.AlreadyBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Remote interface for broker objects. This interface is much more powerful than the interface specified in
@@ -60,6 +62,8 @@ public interface NetworkBroker extends Remote, IBroker {
      * @throws RemoteException If there is an issue with the RMI registry.
      */
 //    void addBroker(IBroker b) throws RemoteException;
+
+    void attemptRemoveSubscriber(String username, Set<String> userTopics) throws RemoteException;
 
     /**
      * Attempt to delete a given topic from a subscriber.

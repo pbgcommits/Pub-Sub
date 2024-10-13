@@ -48,7 +48,7 @@ public class SubscriberMain {
             Registry registry = LocateRegistry.getRegistry(registryIP, registryPort);
             IDirectory d = (IDirectory) registry.lookup(Messenger.DIRECTORY_RMI_NAME);
             IBroker broker = d.getMostAvailableBroker();
-            System.out.println("Connecting to: " + broker.getId());
+//            System.out.println("Connecting to: " + broker.getId());
             // Send a message to the broker telling it to create a new "Subscriber" object and export it to RMI
             try {
                 SocketFactory sf = SocketFactory.getDefault();

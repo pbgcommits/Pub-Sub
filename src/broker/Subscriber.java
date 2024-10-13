@@ -63,7 +63,7 @@ public class Subscriber extends UnicastRemoteObject implements ISubscriber {
      * Lists the active subscriptions with topic ID, topic name, and publisher name.*/
     @Override
     public String showCurrentSubscriptions() {
-        System.out.println(getName() + "is requesting their current subscriptions.");
+        System.out.println(getName() + " is requesting their current subscriptions.");
         if (currentTopics.isEmpty()) {
             return "";
         }

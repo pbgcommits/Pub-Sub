@@ -56,7 +56,7 @@ public class SubscriberConnection extends Thread {
             }
         }
         catch (IOException e) {
-//            System.out.println(subscriber.getName() + " has disconnected");
+            System.out.println(subscriber.getName() + " has disconnected");
             broker.removeSubscriber(subscriber);
             return;
         }

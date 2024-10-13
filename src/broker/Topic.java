@@ -68,6 +68,7 @@ public class Topic extends UnicastRemoteObject implements ITopic {
     }
     @Override
     public int getSubscriberCount() {
+//        System.out.println(subscribers);
         return subscriberCount;
     }
     @Override

@@ -48,7 +48,7 @@ public class PublisherMain {
             Registry registry = LocateRegistry.getRegistry(registryIP, registryPort);
             IDirectory directory = (IDirectory) registry.lookup("Directory");
             IBroker broker = directory.getMostAvailableBroker();
-            System.out.println("Connected to: " + broker.getId());
+//            System.out.println("Connected to: " + broker.getId());
             try {
                 SocketFactory sf = SocketFactory.getDefault();
                 s = sf.createSocket(broker.getIp(), broker.getPort());
