@@ -12,9 +12,9 @@ import java.rmi.registry.Registry;
  * @author Patrick Barton Grace 1557198
  */
 public class DirectoryMain {
-    private static final int numArgs = 2;
+    private static final int numArgs = 1;
     private final static String USAGE_MESSAGE = "Usage: java -jar directory.jar " +
-            "{rmi_ip} {rmi_port}";
+            "{rmi_port}";
     public static void main(String[] args) {
         if (args.length != numArgs) {
             System.out.println(USAGE_MESSAGE);
@@ -23,17 +23,18 @@ public class DirectoryMain {
         int rmiPort;
         try {
             InputVerifier verifier = new InputVerifier();
-            rmiPort = verifier.verifyPort(args, 1, numArgs, USAGE_MESSAGE);
+            rmiPort = verifier.verifyPort(args, 0, numArgs, USAGE_MESSAGE);
         }
         catch (IllegalArgumentException e) {
             System.out.println(e.getMessage());
             return;
         }
-        String rmiIP = args[0];
-        // Find the RMI registry
+//        String rmiIP = args[0];
+        // Create the RMI registry
         Registry registry;
         try {
-            registry = LocateRegistry.getRegistry(rmiIP, rmiPort);
+            registry = LocateRegistry.createRegistry(rmiPort);
+//            registry = LocateRegistry.getRegistry(rmiIP, rmiPort);
         }
         catch (RemoteException e) {
             System.out.println("Error creating RMI registry");
