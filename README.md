@@ -23,21 +23,26 @@ java -jar directory.jar {registry_port}
 ````
  Where {registry_port} is any port number of your choosing.
  This will start the RMI registry.
+
 3. In the second shell, execute
 ```
 java -jar broker.jar localhost {broker_port} localhost {registry_port}
 ```
 Once again, you may pick any port for the broker, so long as it isn't shared with the registry.
 You may repeat step 3 as many times as you like to have as many brokers as you like open. 
+
 4. Open a new shell and execute 
 ```
 java -jar publisher.jar {username} localhost {registry_port}
 ```
 Where {username} is a username of your choice for the publisher.
+
 5. Open a new shell and execute 
 ```
 java -jar subscriber.jar {username} localhost {registry_port}
 ```
 Where {username} is a username of your choice for the subscriber.
 Repeat steps 4 and 5 as much as you like to have as many publishers and subscribers as you like.
+
+
 6. You're in!
